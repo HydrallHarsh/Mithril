@@ -45,7 +45,36 @@ class TrustScoreBreakdown:
     corroboration_bonus: float
     freshness_bonus: float
     final_score: float
-    reasons: list[str]                             # Human-readable explanation list
+    reasons: list[str]
+    source_component: float = 0.0
+    corroboration_component: float = 0.0
+    freshness_component: float = 0.0
+    contradiction_component: float = 0.0
+    raw_weighted_score: float = 0.0
+
+
+@dataclass
+class RecallResult:
+    """Verified-memory query result with provenance metadata."""
+    query: str
+    answer: str
+    candidate_count: int
+    blocked_count: int
+
+
+@dataclass
+class FirewallStats:
+    """Aggregate metrics for dashboard / API."""
+    total_evaluated: int
+    accepted: int
+    warned: int
+    reviewed: int
+    quarantined: int
+    rejected: int
+    entered_cognee: int
+    blocked: int
+    block_rate: float
+    avg_trust_score: float
 
 
 @dataclass

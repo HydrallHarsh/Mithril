@@ -2,31 +2,29 @@
 Mithril — FastAPI Backend
 =========================
 REST API for the Mithril provenance dashboard.
-
-Endpoints:
-    GET  /api/audit      — full audit log, newest first
-    GET  /api/quarantine  — quarantined memories only
-    POST /api/remember    — submit a new memory through the firewall
-    GET  /api/config      — source reputation table + thresholds
-
-Run:
-    uvicorn api.main:app --port 8000 --reload
 """
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import sys
-import os
+from __future__ import annotations
 
-# Ensure project root is on path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+import os
+import sys
 
 from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 load_dotenv()
 
+from mithril.config import SOURCE_OPTIONS, SOURCE_REPUTATION, THRESHOLDS, WEIGHTS
 from mithril.firewall import Mithril
-from mithril.config import SOURCE_REPUTATION, THRESHOLDS
+from mithril.scorer import MAX_THEORETICAL_SCORE
+from mithril.serialization import (
+    admission_result_to_dict,
+    recall_result_to_dict,
+    stats_to_dict,
+)
 
 app = FastAPI(
     title="Mithril",
@@ -34,7 +32,6 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS — allow the Next.js frontend (and any localhost dev server)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -52,64 +49,71 @@ firewall = Mithril()
 
 
 @app.on_event("startup")
-async def startup():
-    """Initialize firewall databases on server start."""
+async def startup() -> None:
     await firewall.setup()
 
 
-# ── Endpoints ────────────────────────────────────────────────────
-
 @app.get("/api/audit")
 async def get_audit():
-    """Return the full audit log, newest first."""
     return await firewall.get_audit_trail()
 
 
 @app.get("/api/quarantine")
 async def get_quarantine():
-    """Return quarantined memories only."""
     return await firewall.get_quarantine()
 
 
+@app.get("/api/stats")
+async def get_stats():
+    stats = await firewall.get_stats()
+    return stats_to_dict(stats)
+
+
 class RememberRequest(BaseModel):
-    """Request body for submitting a memory claim."""
-    text: str
+    text: str = Field(..., min_length=1)
     source: str
     author: str = "demo_user"
 
 
+class RecallRequest(BaseModel):
+    query: str = Field(..., min_length=1)
+
+
 @app.post("/api/remember")
 async def remember(req: RememberRequest):
-    """Submit a new memory through the firewall and return the decision."""
+    if not req.text.strip():
+        raise HTTPException(status_code=400, detail="text cannot be empty")
     result = await firewall.remember(
-        text=req.text,
+        text=req.text.strip(),
         source=req.source,
         author=req.author,
     )
-    return {
-        "status": result.status.value,
-        "trust_score": result.trust_breakdown.final_score,
-        "decision_reason": result.decision_reason,
-        "source_reputation": result.trust_breakdown.source_reputation,
-        "contradiction_penalty": result.trust_breakdown.contradiction_penalty,
-        "corroboration_bonus": result.trust_breakdown.corroboration_bonus,
-        "freshness_bonus": result.trust_breakdown.freshness_bonus,
-        "reasons": result.trust_breakdown.reasons,
-        "entered_cognee": result.cognee_dataset is not None,
-        "cognee_dataset": result.cognee_dataset,
-    }
+    return admission_result_to_dict(result)
+
+
+@app.post("/api/recall")
+async def recall(req: RecallRequest):
+    result = await firewall.recall_with_metadata(req.query.strip())
+    return recall_result_to_dict(result)
+
+
+@app.post("/api/reset")
+async def reset():
+    await firewall.reset()
+    return {"status": "ok", "message": "Cognee memory and audit stores cleared"}
 
 
 @app.get("/api/config")
 async def get_config():
-    """Return source reputation table and admission thresholds."""
     return {
         "source_reputation": SOURCE_REPUTATION,
+        "source_options": SOURCE_OPTIONS,
         "thresholds": THRESHOLDS,
+        "weights": WEIGHTS,
+        "max_theoretical_score": MAX_THEORETICAL_SCORE,
     }
 
 
 @app.get("/api/health")
 async def health():
-    """Health check endpoint."""
     return {"status": "ok", "service": "mithril"}

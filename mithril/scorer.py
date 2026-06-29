@@ -1,12 +1,26 @@
 """
 Mithril — Trust Scorer
-===============================
-Combines multiple signals into a single trust score with a
-human-readable breakdown.  Pure function — no I/O, no Cognee calls.
+======================
+Master plan Section 7 weighted formula::
+
+    raw = source_rep * 0.40 + corroboration * 0.30 + freshness * 0.10
+          - contradiction * 0.40
+
+Raw weighted sums top out around 0.49.  We normalize to [0, 1] so the
+master plan admission thresholds (0.85 / 0.60 / 0.40 / 0.20) apply as
+documented in the UI and demo script.
 """
 
-from .models import MemoryClaim, ContradictionResult, TrustScoreBreakdown
-from .config import SOURCE_REPUTATION, DEFAULT_REPUTATION, WEIGHTS
+from __future__ import annotations
+
+from .config import DEFAULT_REPUTATION, SOURCE_REPUTATION, WEIGHTS
+from .models import ContradictionResult, MemoryClaim, TrustScoreBreakdown
+
+MAX_THEORETICAL_SCORE = (
+    max(SOURCE_REPUTATION.values()) * WEIGHTS["source_reputation"]
+    + 0.3 * WEIGHTS["corroboration"]
+    + 0.05 * WEIGHTS["freshness"]
+)
 
 
 def compute_trust_score(
@@ -14,31 +28,13 @@ def compute_trust_score(
     contradiction: ContradictionResult,
     corroboration_count: int = 0,
 ) -> TrustScoreBreakdown:
-    """
-    Compute trust score from multiple signals.
-
-    Parameters
-    ----------
-    claim : MemoryClaim
-        The incoming memory claim.
-    contradiction : ContradictionResult
-        Result of contradiction check against existing memory.
-    corroboration_count : int
-        Number of independent sources that corroborate this claim.
-
-    Returns
-    -------
-    TrustScoreBreakdown
-        Score with each component and human-readable reasons.
-    """
+    """Compute normalized trust score from weighted signals."""
     reasons: list[str] = []
 
-    # ── 1. Source reputation ─────────────────────────────────────
     source_key = claim.source.lower()
     source_rep = SOURCE_REPUTATION.get(source_key, DEFAULT_REPUTATION)
     reasons.append(f"Source '{claim.source}' reputation: {source_rep:.2f}")
 
-    # ── 2. Contradiction penalty ─────────────────────────────────
     contradiction_penalty = 0.0
     if contradiction.found:
         contradiction_penalty = contradiction.contradiction_score
@@ -48,33 +44,46 @@ def compute_trust_score(
     else:
         reasons.append("No contradictions found in verified memory")
 
-    # ── 3. Corroboration bonus ───────────────────────────────────
-    corroboration_bonus = min(corroboration_count * 0.1, 0.3)  # max 0.3
+    corroboration_bonus = min(corroboration_count * 0.1, 0.3)
     if corroboration_count > 0:
         reasons.append(f"Corroborated by {corroboration_count} other source(s)")
 
-    # ── 4. Freshness bonus ───────────────────────────────────────
-    freshness_bonus = 0.05  # flat for now; can be extended with timestamp deltas
+    freshness_bonus = 0.05
 
-    # ── 5. Weighted combination ──────────────────────────────────
-    # Source reputation is the base signal (0–1); bonuses and penalties adjust it.
-    # Multiplying source_rep by WEIGHTS["source_reputation"] would cap scores near
-    # 0.4 and make the demo thresholds unreachable for high-trust sources.
-    final = (
-        source_rep
-        + corroboration_bonus * WEIGHTS["corroboration"]
-        + freshness_bonus * WEIGHTS["freshness"]
-        - contradiction_penalty * abs(WEIGHTS["contradiction"])
+    source_component = source_rep * WEIGHTS["source_reputation"]
+    corroboration_component = corroboration_bonus * WEIGHTS["corroboration"]
+    freshness_component = freshness_bonus * WEIGHTS["freshness"]
+    contradiction_component = contradiction_penalty * abs(WEIGHTS["contradiction"])
+
+    raw_weighted = (
+        source_component
+        + corroboration_component
+        + freshness_component
+        - contradiction_component
     )
-    final = max(0.0, min(1.0, final))  # clamp to [0, 1]
+    raw_weighted = max(0.0, raw_weighted)
+    final = min(1.0, raw_weighted / MAX_THEORETICAL_SCORE)
 
-    reasons.append(f"Final trust score: {final:.2f}")
+    reasons.append(
+        f"Weighted sum: {raw_weighted:.2f} "
+        f"(source {source_component:.2f}, corroboration +{corroboration_component:.2f}, "
+        f"freshness +{freshness_component:.2f}, contradiction -{contradiction_component:.2f})"
+    )
+    reasons.append(
+        f"Normalized trust score: {final:.2f} "
+        f"(÷ {MAX_THEORETICAL_SCORE:.2f} max theoretical)"
+    )
 
     return TrustScoreBreakdown(
         source_reputation=source_rep,
         contradiction_penalty=contradiction_penalty,
         corroboration_bonus=corroboration_bonus,
         freshness_bonus=freshness_bonus,
+        source_component=source_component,
+        corroboration_component=corroboration_component,
+        freshness_component=freshness_component,
+        contradiction_component=contradiction_component,
+        raw_weighted_score=raw_weighted,
         final_score=final,
         reasons=reasons,
     )

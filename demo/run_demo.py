@@ -94,12 +94,12 @@ async def main():
 
     for text, source in legitimate:
         result = await firewall.remember(text=text, source=source, author="policy_admin")
-        if result.status == AdmissionStatus.ACCEPT:
-            print(f"  {GREEN}✅ ACCEPTED{RESET}  {text[:55]}  {DIM}(score: {result.trust_breakdown.final_score:.2f}){RESET}")
-        elif result.status == AdmissionStatus.WARN:
-            print(f"  {YELLOW}⚠️ WARN{RESET}      {text[:55]}  {DIM}(score: {result.trust_breakdown.final_score:.2f}){RESET}")
+        if result.status in (AdmissionStatus.ACCEPT, AdmissionStatus.WARN):
+            label = "ACCEPTED" if result.status == AdmissionStatus.ACCEPT else "WARN (stored)"
+            color = GREEN if result.status == AdmissionStatus.ACCEPT else YELLOW
+            print(f"  {color}✅ {label}{RESET}  {text[:55]}  {DIM}(score: {result.trust_breakdown.final_score:.2f}){RESET}")
         else:
-            print(f"  {RED}❌ REJECTED{RESET}  {text[:55]}  {DIM}(score: {result.trust_breakdown.final_score:.2f}){RESET}")
+            print(f"  {RED}❌ BLOCKED{RESET}  {text[:55]}  {DIM}(score: {result.trust_breakdown.final_score:.2f}){RESET}")
 
     print(f"\n  {GREEN}{BOLD}→ {len(legitimate)} verified policies now in Cognee{RESET}")
 
@@ -169,18 +169,28 @@ async def main():
     quarantined = [r for r in audit if r["status"] == "quarantine"]
     rejected    = [r for r in audit if r["status"] == "reject"]
     reviewed    = [r for r in audit if r["status"] == "review"]
+    in_cognee   = [r for r in audit if r.get("entered_cognee")]
 
     print(f"  Total memories evaluated:  {BOLD}{len(audit)}{RESET}")
     print(f"  {GREEN}Accepted:{RESET}                {len(accepted)}")
-    if warned:
-        print(f"  {YELLOW}Warned:{RESET}                  {len(warned)}")
+    print(f"  {YELLOW}Warned (stored):{RESET}         {len(warned)}")
+    print(f"  {GREEN}Entered Cognee:{RESET}            {len(in_cognee)}")
     print(f"  {YELLOW}Quarantined:{RESET}             {len(quarantined)}")
     print(f"  {RED}Rejected:{RESET}                {len(rejected)}")
     if reviewed:
         print(f"  Pending review:            {len(reviewed)}")
 
-    blocked = len(quarantined) + len(rejected)
+    blocked = len(quarantined) + len(rejected) + len(reviewed)
     print(f"\n  {BOLD}Attacks blocked: {blocked} / 3{RESET}")
+
+    # Optional graph visualization (master plan Day 4)
+    try:
+        os.makedirs("artifacts", exist_ok=True)
+        from cognee import visualize_graph
+        await visualize_graph("./artifacts/mithril_graph.html")
+        print(f"\n  {DIM}Graph saved → artifacts/mithril_graph.html{RESET}")
+    except Exception as exc:
+        print(f"\n  {DIM}(Graph visualization skipped: {exc}){RESET}")
 
     print(f"\n{GREEN}{BOLD}  ✅ Mithril protected Cognee from all poisoning attacks.{RESET}")
     print(f"\n  {DIM}Run 'python demo/vanilla_demo.py' to see what happens without it.{RESET}\n")
