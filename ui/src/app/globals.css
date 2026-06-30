@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-surface text-zinc-100 antialiased;
+}
+
+code {
+  @apply rounded bg-zinc-900 px-1 py-0.5 font-mono text-xs;
+}
+
+.font-display {
+  font-family: var(--font-space-grotesk), var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
+}

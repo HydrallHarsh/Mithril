@@ -72,6 +72,8 @@ copy .env.example .env   # add LLM_API_KEY
 make test    # unit tests
 make demo    # full attack demo (terminal)
 make api     # FastAPI backend → http://localhost:8000
+make ui-install && make ui   # landing → http://localhost:3001 · dashboard → /dashboard
+make dev     # start API + UI together
 ```
 
 ## Usage

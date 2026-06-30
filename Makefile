@@ -1,4 +1,4 @@
-.PHONY: demo vanilla seed test api reset clean install dev
+.PHONY: demo vanilla seed test api reset clean install dev ui ui-install ui-build
 
 demo:
 	.venv\Scripts\python.exe demo/run_demo.py
@@ -15,10 +15,18 @@ test:
 api:
 	.venv\Scripts\python.exe -m uvicorn api.main:app --port 8000 --reload
 
+ui:
+	cd ui && npm run dev
+
+ui-install:
+	cd ui && npm install
+
+ui-build:
+	cd ui && npm run build
+
 dev:
 	start cmd /c ".venv\Scripts\python.exe -m uvicorn api.main:app --port 8000 --reload"
-	@echo FastAPI started on http://localhost:8000
-	@echo Run 'make ui' in another terminal when the Next.js UI is added (master plan Day 5)
+	cd ui && npm run dev
 
 reset:
 	.venv\Scripts\python.exe -c "import asyncio; import cognee; asyncio.run(cognee.forget(everything=True))"
