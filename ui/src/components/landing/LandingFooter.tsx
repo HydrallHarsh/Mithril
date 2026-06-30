@@ -1,11 +1,21 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { fadeUp } from "@/components/landing/motion";
 import Link from "next/link";
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-zinc-800 py-12">
+    <motion.footer
+      className="border-t border-zinc-800 py-12"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+    >
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900 font-mono text-xs text-emerald-400">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md border border-memory-500/40 bg-zinc-900 font-mono text-xs text-gradient-brand">
             M
           </div>
           <span className="text-sm text-zinc-500">
@@ -22,6 +32,6 @@ export function LandingFooter() {
         </div>
         <p className="text-xs text-zinc-600">© 2026 Mithril</p>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

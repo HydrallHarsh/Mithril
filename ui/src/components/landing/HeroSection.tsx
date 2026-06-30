@@ -1,52 +1,71 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { HeroBackground } from "@/components/landing/HeroBackground";
-import { DemoVideoFrame } from "@/components/landing/DemoVideoFrame";
+import { fadeUp, staggerContainer } from "@/components/landing/motion";
 
 export function HeroSection() {
   return (
     <section className="relative flex min-h-screen flex-col items-center overflow-hidden pb-24 pt-28 sm:pt-32">
       <HeroBackground />
 
-      {/* Centered copy — Manthan-style vertical stack */}
-      <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center px-4 text-center sm:px-6">
-        <a
+      <motion.div
+        className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center px-4 text-center sm:px-6"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.a
           href="#how-it-works"
-          className="mb-10 inline-flex items-center overflow-hidden rounded-full border border-zinc-800 bg-zinc-950/60 text-xs backdrop-blur-sm transition hover:border-zinc-700"
+          variants={fadeUp}
+          className="landing-eyebrow mb-10 inline-flex items-center overflow-hidden rounded-md border border-zinc-800/90 bg-zinc-950/70 normal-case tracking-normal backdrop-blur-sm transition hover:border-zinc-700"
         >
-          <span className="bg-emerald-400/90 px-3 py-1.5 font-medium text-zinc-950">
-            Cognee
+          <span className="bg-brand-500/15 px-3 py-2 text-brand-300">
+            Cognee governance
           </span>
-          <span className="px-3 py-1.5 text-zinc-400">
-            Trust layer for agent memory →
+          <span className="px-3 py-2 text-zinc-400">
+            Trust layer for agent memory
           </span>
-        </a>
+        </motion.a>
 
-        <h1 className="font-display text-[2.75rem] font-bold leading-[1.08] tracking-tight text-white sm:text-6xl md:text-7xl">
-          Stop poisoned claims{" "}
-          <span className="font-serif italic text-zinc-100">
+        <motion.h1
+          variants={fadeUp}
+          className="font-hero text-[2.35rem] font-bold leading-[1.08] text-white sm:text-5xl md:text-[3.4rem]"
+        >
+          Stop poisoned claims
+          <br />
+          <motion.span
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="font-semibold text-gradient-brand"
+          >
             before they stick.
-          </span>
-        </h1>
+          </motion.span>
+        </motion.h1>
 
-        <p className="mt-6 max-w-xl text-base leading-relaxed text-zinc-400 sm:text-lg">
+        <motion.p
+          variants={fadeUp}
+          className="mt-6 max-w-xl text-base leading-[1.7] text-zinc-400 sm:text-[1.05rem]"
+        >
           Mithril sits between your agent and Cognee — scoring source
           reputation, checking contradictions against verified memory, and
           gating every write with an audit trail you can actually defend.
-        </p>
+        </motion.p>
 
-        <Link
-          href="/dashboard"
-          className="mt-10 inline-flex items-center gap-2 rounded-full bg-emerald-400 px-8 py-3.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-300"
-        >
-          Open dashboard
-          <span aria-hidden>→</span>
-        </Link>
-      </div>
-
-      {/* Demo video frame — below hero text */}
-      <div className="relative z-10 mt-16 w-full px-4 sm:mt-20 sm:px-6">
-        <DemoVideoFrame />
-      </div>
+        <motion.div variants={fadeUp}>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              href="/dashboard"
+              className="mt-10 inline-flex items-center gap-2 rounded-lg bg-brand-400 px-8 py-3.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-brand-500/20 transition-colors hover:bg-brand-300"
+            >
+              Open dashboard
+              <span aria-hidden>→</span>
+            </Link>
+          </motion.div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

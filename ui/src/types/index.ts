@@ -77,6 +77,16 @@ export interface RecallResult {
 
 export type ConnectionMode = "live" | "mock";
 
+export interface ReputationEntry {
+  source: string;
+  reputation: number;
+  prior: number;
+  delta: number;
+  accept_count: number;
+  block_count: number;
+  updated_at: string;
+}
+
 export interface StatusConfig {
   label: string;
   dot: string;
@@ -105,9 +115,9 @@ export const STATUS_CONFIG: Record<AdmissionStatus, StatusConfig> = {
   },
   quarantine: {
     label: "Quarantined",
-    dot: "bg-red-400",
-    badge: "bg-red-500/15 text-red-400 ring-red-500/30",
-    text: "text-red-400",
+    dot: "bg-rose-400",
+    badge: "bg-rose-500/15 text-rose-400 ring-rose-500/30",
+    text: "text-rose-400",
   },
   reject: {
     label: "Rejected",
@@ -146,7 +156,7 @@ export function scoreColorClass(score: number): string {
   if (score >= 0.85) return "bg-emerald-400";
   if (score >= 0.6) return "bg-amber-400";
   if (score >= 0.4) return "bg-orange-400";
-  return "bg-red-400";
+  return "bg-rose-400";
 }
 
 export function isBlockedStatus(status: AdmissionStatus): boolean {

@@ -5,6 +5,7 @@ import type {
   DashboardStats,
   RecallResult,
   RememberResult,
+  ReputationEntry,
 } from "@/types";
 
 async function readJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -37,6 +38,10 @@ export async function fetchStats(): Promise<DashboardStats> {
 
 export async function fetchConfig(): Promise<AppConfig> {
   return readJson<AppConfig>("/api/config");
+}
+
+export async function fetchReputation(): Promise<ReputationEntry[]> {
+  return readJson<ReputationEntry[]>("/api/reputation");
 }
 
 export async function submitRemember(body: {

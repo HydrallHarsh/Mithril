@@ -15,13 +15,16 @@ const DOTS: Record<string, string> = {
   accept: "bg-emerald-400",
   warn: "bg-amber-400",
   review: "bg-orange-400",
-  quarantine: "bg-red-400",
+  quarantine: "bg-rose-400",
 };
 
 export function ThresholdLegend({ thresholds }: ThresholdLegendProps) {
   return (
     <div className="rounded-lg border border-surface-border bg-surface-card p-4">
-      <h2 className="mb-3 text-sm font-medium text-zinc-200">Thresholds</h2>
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-200">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+        Thresholds
+      </h2>
       <ul className="space-y-2 text-sm">
         {ROWS.map(({ key, label, suffix }) => (
           <li key={key} className="flex items-center justify-between gap-3">

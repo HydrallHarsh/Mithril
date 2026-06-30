@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import { SignalBars } from "@/components/SignalBars";
 import { StatusBadge } from "@/components/StatusBadge";
+import { stepContent } from "@/components/landing/motion";
 
 const STEPS = [
   {
@@ -62,15 +64,13 @@ export function DemoVideoFrame() {
     return () => clearInterval(timer);
   }, [playing, advance]);
 
-  function handlePlay() {
-    setPlaying(true);
-    setActive(0);
+  function handlePlayToggle() {
+    setPlaying((prev) => !prev);
   }
 
   return (
     <div className="mx-auto w-full max-w-3xl">
       <div className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/90 shadow-2xl shadow-black/60 backdrop-blur-sm">
-        {/* macOS-style title bar */}
         <div className="flex items-center justify-between border-b border-zinc-800/80 px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex gap-1.5">
@@ -82,111 +82,129 @@ export function DemoVideoFrame() {
               MITHRIL · MD5 poison via Slack
             </span>
           </div>
-          {!playing && (
-            <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-              Replay demo
-            </span>
-          )}
-          {playing && (
-            <span className="font-mono text-[10px] text-emerald-500/80">
-              ● Stepping through gate
-            </span>
-          )}
+          <span
+            className={`font-mono text-[10px] ${
+              playing ? "text-emerald-500/80" : "uppercase tracking-widest text-zinc-600"
+            }`}
+          >
+            {playing ? "● Stepping through gate" : "Step 01 · Policy seed"}
+          </span>
         </div>
 
         <div className="relative min-h-[320px] sm:min-h-[360px]">
-          {!playing ? (
-            <>
-              {/* Poster frame — blurred preview */}
-              <div className="absolute inset-0 flex">
-                <div className="flex-1 border-r border-zinc-800/60 p-4 opacity-40">
-                  <p className="mb-2 text-[10px] uppercase tracking-widest text-zinc-600">
-                    Incoming claim
-                  </p>
-                  <p className="font-mono text-xs text-zinc-500">
-                    Always hash passwords using MD5…
-                  </p>
-                </div>
-                <div className="w-40 p-4 opacity-40">
-                  <p className="mb-2 text-[10px] uppercase tracking-widest text-zinc-600">
-                    Gate
-                  </p>
-                  <p className="font-mono text-[10px] text-zinc-600">REJECT</p>
-                </div>
-              </div>
+          <div className="p-4 sm:p-5">
+            <div className="mb-4 flex gap-1">
+              {STEPS.map((s, i) => (
+                <motion.button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setActive(i)}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
+                  className={`rounded-md px-2.5 py-1 text-[11px] transition-colors ${
+                    i === active
+                      ? "bg-zinc-800 text-zinc-100"
+                      : "text-zinc-600 hover:text-zinc-400"
+                  }`}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </motion.button>
+              ))}
+            </div>
 
-              <button
-                type="button"
-                onClick={handlePlay}
-                className="absolute left-1/2 top-1/2 z-10 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-black shadow-xl transition hover:scale-105"
-                aria-label="Play demo"
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step.id}
+                variants={stepContent}
+                initial="enter"
+                animate="center"
+                exit="exit"
               >
-                <svg viewBox="0 0 24 24" className="ml-1 h-7 w-7 fill-current">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </button>
-            </>
-          ) : (
-            <div className="animate-slide-in p-4 sm:p-5">
-              <div className="mb-4 flex gap-1">
-                {STEPS.map((s, i) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setActive(i)}
-                    className={`rounded-md px-2.5 py-1 text-[11px] transition ${
-                      i === active
-                        ? "bg-zinc-800 text-zinc-100"
-                        : "text-zinc-600 hover:text-zinc-400"
-                    }`}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </button>
-                ))}
-              </div>
+                <p className="mb-3 text-xs text-emerald-400/90">{step.label}</p>
 
-              <p className="mb-3 text-xs text-emerald-400/90">{step.label}</p>
+                <blockquote className="mb-4 rounded-lg border border-zinc-800 bg-black/50 p-3 font-mono text-xs leading-relaxed text-zinc-300">
+                  {step.claim}
+                </blockquote>
 
-              <blockquote className="mb-4 rounded-lg border border-zinc-800 bg-black/50 p-3 font-mono text-xs leading-relaxed text-zinc-300">
-                {step.claim}
-              </blockquote>
-
-              <div className="mb-4 grid grid-cols-2 gap-3 text-xs">
-                <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
-                  <p className="mb-1 text-zinc-600">Source</p>
-                  <p className="font-mono text-zinc-200">{step.source}</p>
-                </div>
-                <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
-                  <p className="mb-1 text-zinc-600">Trust</p>
-                  <div className="flex items-center gap-2">
-                    <SignalBars score={step.score} />
-                    <span className="font-mono text-zinc-200">
-                      {Math.round(step.score * 100)}%
-                    </span>
+                <div className="mb-4 grid grid-cols-2 gap-3 text-xs">
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                    <p className="mb-1 text-zinc-600">Source</p>
+                    <p className="font-mono text-zinc-200">{step.source}</p>
+                  </div>
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                    <p className="mb-1 text-zinc-600">Trust</p>
+                    <div className="flex items-center gap-2">
+                      <SignalBars score={step.score} />
+                      <span className="font-mono text-zinc-200">
+                        {Math.round(step.score * 100)}%
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
-                <StatusBadge status={step.status} />
-                <Link
-                  href="/dashboard"
-                  className="font-mono text-[11px] text-zinc-500 transition hover:text-emerald-400"
-                >
-                  Open full dashboard →
-                </Link>
-              </div>
-            </div>
-          )}
+                <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
+                  <StatusBadge status={step.status} />
+                  <Link
+                    href="/dashboard"
+                    className="font-mono text-[11px] text-zinc-500 transition hover:text-emerald-400"
+                  >
+                    Open full dashboard →
+                  </Link>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
-      <p className="mt-8 text-center font-mono text-[11px] uppercase tracking-[0.35em] text-zinc-500">
-        Three-step attack replay
-      </p>
-      <p className="mt-2 text-center text-xs text-zinc-600">
-        Seed policy → poison attempt → verified update
-      </p>
+      <div className="mt-6 flex flex-col items-center gap-3">
+        <motion.button
+          type="button"
+          onClick={handlePlayToggle}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          animate={
+            playing
+              ? {
+                  boxShadow: [
+                    "0 0 0 0 rgba(16, 185, 129, 0.35)",
+                    "0 0 0 8px rgba(16, 185, 129, 0)",
+                  ],
+                }
+              : { boxShadow: "0 0 0 0 rgba(16, 185, 129, 0)" }
+          }
+          transition={
+            playing
+              ? { duration: 1.4, repeat: Infinity, ease: "easeOut" }
+              : { duration: 0.2 }
+          }
+          className="inline-flex items-center gap-2.5 rounded-lg border border-zinc-700 bg-zinc-900/90 px-5 py-2.5 text-sm font-medium text-zinc-100 shadow-lg shadow-black/30 transition-colors hover:border-emerald-500/40 hover:bg-zinc-800"
+          aria-label={playing ? "Pause demo replay" : "Play demo replay"}
+        >
+          {playing ? (
+            <>
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                <path d="M6 5h4v14H6V5zm8 0h4v14h-4V5z" />
+              </svg>
+              Pause replay
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              Play demo
+            </>
+          )}
+        </motion.button>
+
+        <p className="text-center font-mono text-[11px] uppercase tracking-[0.35em] text-zinc-500">
+          Three-step attack replay
+        </p>
+        <p className="text-center text-xs text-zinc-600">
+          Seed policy → poison attempt → verified update
+        </p>
+      </div>
     </div>
   );
 }

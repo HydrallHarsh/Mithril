@@ -1,3 +1,12 @@
+"use client";
+
+import { motion } from "framer-motion";
+import {
+  fadeUp,
+  scrollReveal,
+  scrollRevealStagger,
+} from "@/components/landing/motion";
+
 const APIS = [
   {
     name: "cognee.remember()",
@@ -22,29 +31,49 @@ export function CogneeStack() {
     <section className="border-t border-zinc-800 py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <h2 className="font-display text-4xl font-bold tracking-tight text-zinc-50 sm:text-5xl">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={scrollRevealStagger}
+          >
+            <motion.p variants={fadeUp} className="landing-eyebrow mb-3">
+              Integration
+            </motion.p>
+            <motion.h2 variants={fadeUp} className="landing-heading text-3xl sm:text-4xl">
               Built on Cognee,
               <br />
               not bolted on.
-            </h2>
-            <p className="mt-4 text-lg text-zinc-400">
+            </motion.h2>
+            <motion.p
+              variants={fadeUp}
+              className="mt-4 text-base leading-relaxed text-zinc-400 sm:text-lg"
+            >
               Mithril is a governance wrapper — it uses NodeSets, dataset scoping,
               and recall modes the way the Cognee judges expect to see them.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={scrollRevealStagger}
+          >
             {APIS.map((api) => (
-              <div
+              <motion.div
                 key={api.name}
-                className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 transition hover:border-emerald-500/30"
+                variants={scrollReveal}
+                whileHover={{ x: 6, borderColor: "rgba(34, 211, 238, 0.35)" }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4"
               >
-                <p className="font-mono text-sm text-emerald-400">{api.name}</p>
+                <p className="font-mono text-sm text-accent-300">{api.name}</p>
                 <p className="mt-1 text-sm text-zinc-500">{api.desc}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

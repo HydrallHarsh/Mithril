@@ -1,3 +1,12 @@
+"use client";
+
+import { motion } from "framer-motion";
+import {
+  fadeUp,
+  scrollReveal,
+  scrollRevealStagger,
+} from "@/components/landing/motion";
+
 const STEPS = [
   {
     num: "01",
@@ -23,25 +32,47 @@ export function HowItWorks() {
   return (
     <section id="how-it-works" className="border-t border-zinc-800 py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="mb-16 max-w-2xl">
-          <p className="mb-3 text-sm text-zinc-500">How Mithril works</p>
-          <h2 className="font-display text-4xl font-bold tracking-tight text-zinc-50 sm:text-5xl">
+        <motion.div
+          className="mb-16 max-w-2xl"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={scrollRevealStagger}
+        >
+          <motion.p variants={fadeUp} className="landing-eyebrow mb-3">
+            How Mithril works
+          </motion.p>
+          <motion.h2 variants={fadeUp} className="landing-heading text-3xl sm:text-4xl">
             From signal to a verified memory.
-          </h2>
-          <p className="mt-4 text-lg text-zinc-400">
+          </motion.h2>
+          <motion.p
+            variants={fadeUp}
+            className="mt-4 text-base leading-relaxed text-zinc-400 sm:text-lg"
+          >
             Three steps. No prompt engineering. Cognee APIs you can name in the
             README.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <motion.div
+          className="grid gap-6 md:grid-cols-3"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          variants={scrollRevealStagger}
+        >
           {STEPS.map((step) => (
-            <article
+            <motion.article
               key={step.num}
-              className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-6 transition hover:border-zinc-700"
+              variants={scrollReveal}
+              whileHover={{ y: -4, borderColor: "rgb(63 63 70)" }}
+              transition={{ type: "spring", stiffness: 320, damping: 24 }}
+              className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-6"
             >
-              <p className="mb-4 font-mono text-sm text-emerald-400">{step.num}</p>
-              <h3 className="font-display mb-3 text-xl font-semibold text-zinc-100">
+              <p className="mb-4 font-display text-3xl font-light tabular-nums text-memory-400/70">
+                {step.num}
+              </p>
+              <h3 className="font-display mb-3 text-lg font-semibold text-zinc-100">
                 {step.title}
               </h3>
               <p className="mb-4 text-sm leading-relaxed text-zinc-400">
@@ -57,9 +88,9 @@ export function HowItWorks() {
                   </span>
                 ))}
               </div>
-            </article>
+            </motion.article>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -1,4 +1,9 @@
-import type { AppConfig, AuditEntry, DashboardStats } from "@/types";
+import type {
+  AppConfig,
+  AuditEntry,
+  DashboardStats,
+  ReputationEntry,
+} from "@/types";
 
 /** Demo data when FastAPI is offline — lets UI development proceed without Python. */
 export const MOCK_CONFIG: AppConfig = {
@@ -107,3 +112,17 @@ export const MOCK_STATS: DashboardStats = {
   block_rate: 0.333,
   avg_trust_score: 0.587,
 };
+
+/** Mock reputation showing Slack's trust dropping after being caught lying. */
+export const MOCK_REPUTATION: ReputationEntry[] = [
+  { source: "security policy", reputation: 0.98, prior: 0.98, delta: 0, accept_count: 2, block_count: 0, updated_at: new Date().toISOString() },
+  { source: "official docs", reputation: 0.95, prior: 0.95, delta: 0, accept_count: 1, block_count: 0, updated_at: new Date().toISOString() },
+  { source: "github pr", reputation: 0.9, prior: 0.9, delta: 0, accept_count: 0, block_count: 0, updated_at: new Date().toISOString() },
+  { source: "engineering blog", reputation: 0.8, prior: 0.8, delta: 0, accept_count: 0, block_count: 0, updated_at: new Date().toISOString() },
+  { source: "internal wiki", reputation: 0.75, prior: 0.75, delta: 0, accept_count: 0, block_count: 0, updated_at: new Date().toISOString() },
+  { source: "email", reputation: 0.55, prior: 0.55, delta: 0, accept_count: 0, block_count: 0, updated_at: new Date().toISOString() },
+  { source: "slack", reputation: 0.36, prior: 0.6, delta: -0.24, accept_count: 0, block_count: 2, updated_at: new Date().toISOString() },
+  { source: "ai agent", reputation: 0.4, prior: 0.4, delta: 0, accept_count: 0, block_count: 0, updated_at: new Date().toISOString() },
+  { source: "unknown agent", reputation: 0.22, prior: 0.3, delta: -0.08, accept_count: 0, block_count: 1, updated_at: new Date().toISOString() },
+  { source: "untrusted", reputation: 0.1, prior: 0.1, delta: 0, accept_count: 0, block_count: 0, updated_at: new Date().toISOString() },
+];

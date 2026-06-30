@@ -32,6 +32,13 @@ export function AuditTable({ entries }: AuditTableProps) {
 
   return (
     <div className="flex min-h-[420px] flex-col overflow-hidden rounded-lg border border-surface-border bg-surface-card">
+      <div className="flex items-center justify-between border-b border-surface-border px-4 pt-3">
+        <div className="flex items-center gap-2 pb-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-400" />
+          <h2 className="text-sm font-medium text-zinc-200">Audit log</h2>
+          <span className="font-mono text-xs text-zinc-600">{entries.length}</span>
+        </div>
+      </div>
       <FilterTabs active={activeTab} entries={entries} onChange={setActiveTab} />
 
       {filtered.length === 0 ? (
@@ -45,7 +52,7 @@ export function AuditTable({ entries }: AuditTableProps) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
-              <tr className="border-b border-surface-border text-[11px] uppercase tracking-wide text-zinc-600">
+              <tr className="border-b border-surface-border bg-surface-raised/40 text-[11px] uppercase tracking-wide text-zinc-600">
                 <th className="px-4 py-3 font-medium">Time</th>
                 <th className="px-4 py-3 font-medium">Memory</th>
                 <th className="px-4 py-3 font-medium">Source</th>
@@ -61,7 +68,9 @@ export function AuditTable({ entries }: AuditTableProps) {
                 return (
                   <Fragment key={entry.id}>
                     <tr
-                      className="animate-slide-in cursor-pointer border-b border-surface-border/70 transition hover:bg-zinc-900/50"
+                      className={`animate-slide-in cursor-pointer border-b border-surface-border/70 transition hover:bg-surface-raised/60 ${
+                        expanded ? "bg-surface-raised/40" : ""
+                      }`}
                       onClick={() =>
                         setExpandedId(expanded ? null : entry.id)
                       }
@@ -73,7 +82,7 @@ export function AuditTable({ entries }: AuditTableProps) {
                         {entry.text}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-xs text-zinc-300">
+                        <span className="rounded border border-accent-500/20 bg-accent-500/10 px-2 py-0.5 font-mono text-xs text-accent-300">
                           {entry.source}
                         </span>
                       </td>
@@ -89,9 +98,9 @@ export function AuditTable({ entries }: AuditTableProps) {
                       </td>
                     </tr>
                     {expanded && (
-                      <tr className="bg-zinc-950/80">
+                      <tr className="bg-surface-raised/30">
                         <td colSpan={5} className="px-4 py-4">
-                          <div className="space-y-3">
+                          <div className="space-y-3 border-l-2 border-accent-500/40 pl-4">
                             <pre className="overflow-x-auto rounded-md border border-surface-border bg-black/40 p-3 font-mono text-xs text-zinc-300">
                               {entry.text}
                             </pre>
@@ -101,14 +110,16 @@ export function AuditTable({ entries }: AuditTableProps) {
                               ))}
                             </ul>
                             {entry.entered_cognee ? (
-                              <p className="text-xs text-emerald-400">
+                              <p className="inline-flex items-center gap-1.5 rounded-md border border-brand-500/20 bg-brand-500/5 px-2.5 py-1 text-xs text-brand-400">
+                                <span className="h-1.5 w-1.5 rounded-full bg-brand-400" />
                                 Stored in Cognee dataset:{" "}
                                 <span className="font-mono">
                                   {entry.cognee_dataset ?? "verified_memories"}
                                 </span>
                               </p>
                             ) : (
-                              <p className="text-xs text-red-400">
+                              <p className="inline-flex items-center gap-1.5 rounded-md border border-rose-500/20 bg-rose-500/5 px-2.5 py-1 text-xs text-rose-400">
+                                <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
                                 Not stored in Cognee — held in quarantine / rejected
                               </p>
                             )}

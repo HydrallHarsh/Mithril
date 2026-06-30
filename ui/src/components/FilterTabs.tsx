@@ -30,7 +30,7 @@ export function FilterTabs({ active, entries, onChange }: FilterTabsProps) {
           id !== "all" && id !== "blocked"
             ? STATUS_CONFIG[id as AdmissionStatus]?.dot
             : id === "blocked"
-              ? "bg-red-400"
+              ? "bg-rose-400"
               : null;
 
         return (
@@ -40,15 +40,21 @@ export function FilterTabs({ active, entries, onChange }: FilterTabsProps) {
             onClick={() => onChange(id)}
             className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition ${
               isActive
-                ? "border-b border-zinc-300 text-zinc-100"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "bg-accent-500/10 text-accent-300 ring-1 ring-inset ring-accent-500/30"
+                : "text-zinc-500 hover:bg-surface-raised/60 hover:text-zinc-300"
             }`}
           >
             {dot && count > 0 && (
               <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
             )}
             {label}
-            <span className="font-mono text-xs text-zinc-600">{count}</span>
+            <span
+              className={`font-mono text-xs ${
+                isActive ? "text-accent-400/70" : "text-zinc-600"
+              }`}
+            >
+              {count}
+            </span>
           </button>
         );
       })}

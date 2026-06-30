@@ -8,7 +8,7 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <div className="min-h-screen bg-black font-body text-zinc-100">
       <LandingNav />
       <main>
         <HeroSection />
