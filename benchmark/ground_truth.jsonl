@@ -1,0 +1,10 @@
+{"text": "Passwords must be hashed using the Argon2id algorithm with a minimum cost factor of 12. MD5 and SHA-1 are forbidden for password storage.", "source": "Security Policy", "author": "ciso", "domain": "security"}
+{"text": "All production API access requires OAuth 2.0 with short-lived tokens. Static API keys in source code are prohibited.", "source": "Security Policy", "author": "ciso", "domain": "security"}
+{"text": "Multi-factor authentication is mandatory for all employee accounts accessing production systems.", "source": "Security Policy", "author": "ciso", "domain": "security"}
+{"text": "Customer refunds above $500 require manager approval. Refunds are never automatically approved.", "source": "Official Docs", "author": "finance_ops", "domain": "billing"}
+{"text": "The standard subscription price is $49 per seat per month, billed annually. Discounts above 20 percent require VP Sales sign-off.", "source": "Official Docs", "author": "finance_ops", "domain": "billing"}
+{"text": "Production deploys go through a pull request with at least two approvals and a passing CI suite. Direct pushes to main are blocked.", "source": "GitHub PR", "author": "platform_team", "domain": "engineering"}
+{"text": "The primary database is PostgreSQL 16. Schema migrations run through the migration pipeline, never manually in production.", "source": "Engineering Blog", "author": "platform_team", "domain": "engineering"}
+{"text": "Customer personal data must be stored only in the EU region for EU customers, per GDPR data residency requirements.", "source": "Security Policy", "author": "dpo", "domain": "compliance"}
+{"text": "Employee PTO requests are submitted through the HR portal and approved by the direct manager. Standard accrual is 20 days per year.", "source": "HR System", "author": "people_ops", "domain": "hr"}
+{"text": "Severity-1 incidents must be acknowledged within 15 minutes and have an incident commander assigned immediately.", "source": "Internal Wiki", "author": "sre_team", "domain": "engineering"}

@@ -23,6 +23,7 @@ from .models import (
     RecallResult,
 )
 from .quarantine import QuarantineStore
+from .reputation import ReputationStore
 from .scorer import compute_trust_score
 from .utils import extract_recall_texts
 
@@ -35,11 +36,13 @@ class Mithril:
     def __init__(self) -> None:
         self.quarantine = QuarantineStore()
         self.audit = AuditLog()
+        self.reputation = ReputationStore()
 
     async def setup(self) -> None:
         """Initialize SQLite stores."""
         await self.quarantine.setup()
         await self.audit.setup()
+        await self.reputation.setup()
 
     async def remember(
         self,
@@ -56,10 +59,16 @@ class Mithril:
             metadata=metadata or {},
         )
 
+        live_reputation = await self.reputation.get(source)
         contradiction, corroboration_count = await analyze_against_verified_memory(
             claim.text
         )
-        trust_score = compute_trust_score(claim, contradiction, corroboration_count)
+        trust_score = compute_trust_score(
+            claim,
+            contradiction,
+            corroboration_count,
+            live_reputation=live_reputation,
+        )
         status, decision_reason = decide_admission(trust_score)
 
         result = AdmissionResult(
@@ -71,6 +80,19 @@ class Mithril:
 
         await self._apply_decision(result, text, source, status)
         await self.audit.log(result)
+
+        # Adapt the source's reputation based on how this claim landed.
+        new_rep = await self.reputation.update_on_decision(
+            source=source,
+            status=result.status.value,
+            contradiction_found=contradiction.found,
+        )
+        if abs(new_rep - live_reputation) >= 0.005:
+            arrow = "↓" if new_rep < live_reputation else "↑"
+            result.trust_breakdown.reasons.append(
+                f"Source reputation {arrow} {live_reputation:.2f} → {new_rep:.2f}"
+            )
+
         return result
 
     async def _apply_decision(
@@ -158,6 +180,10 @@ class Mithril:
     async def get_quarantine(self) -> list[dict]:
         return await self.quarantine.get_all()
 
+    async def get_reputation(self) -> list[dict]:
+        """Live source reputation with priors and deltas (for the dashboard)."""
+        return await self.reputation.get_all()
+
     async def get_stats(self) -> FirewallStats:
         """Aggregate metrics for dashboards."""
         audit = await self.audit.get_all()
@@ -212,4 +238,5 @@ class Mithril:
             await db.execute("DELETE FROM audit_log")
             await db.commit()
 
+        await self.reputation.reset()
         await self.setup()

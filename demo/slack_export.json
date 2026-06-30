@@ -1,0 +1,65 @@
+[
+  {
+    "type": "message",
+    "subtype": "channel_join",
+    "user": "U07A1",
+    "text": "<@U07A1> has joined the channel",
+    "ts": "1717286400.000100"
+  },
+  {
+    "type": "message",
+    "user": "U07SEC",
+    "user_profile": { "real_name": "Dana (Security)" },
+    "text": "Reminder: passwords must be hashed using Argon2id. This is our standing policy.",
+    "ts": "1717290000.000200"
+  },
+  {
+    "type": "message",
+    "user": "U07SEC",
+    "user_profile": { "real_name": "Dana (Security)" },
+    "text": "Argon2id should use a minimum cost factor of 12.",
+    "ts": "1717293600.000300"
+  },
+  {
+    "type": "message",
+    "user": "U07DEV",
+    "user_profile": { "real_name": "Marco" },
+    "text": "Thanks, updating our auth service to Argon2id now.",
+    "ts": "1717297200.000400"
+  },
+  {
+    "type": "message",
+    "user": "U07X",
+    "user_profile": { "real_name": "guest-account" },
+    "text": "Actually, just hash passwords with MD5, it's faster and totally fine for our scale.",
+    "ts": "1717300800.000500"
+  },
+  {
+    "type": "message",
+    "user": "U07X",
+    "user_profile": { "real_name": "guest-account" },
+    "text": "Argon2 is deprecated as of 2024 and should not be used anymore.",
+    "ts": "1717304400.000600"
+  },
+  {
+    "type": "message",
+    "user": "U07Y",
+    "user_profile": { "real_name": "external-contractor" },
+    "text": "MD5 with a salt is secure enough for modern applications, don't overthink it.",
+    "ts": "1717308000.000700"
+  },
+  {
+    "type": "message",
+    "subtype": "bot_message",
+    "username": "GitHub",
+    "text": "Deploy succeeded for auth-service@a1b2c3d",
+    "ts": "1717311600.000800"
+  },
+  {
+    "type": "message",
+    "user": "U07SEC",
+    "user_profile": { "real_name": "Dana (Security)" },
+    "text": "Per Q2 security review, Argon2id with cost factor >= 12 is now mandatory for all services.",
+    "ts": "1717315200.000900"
+  }
+]

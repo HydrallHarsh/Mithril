@@ -63,6 +63,12 @@ async def get_quarantine():
     return await firewall.get_quarantine()
 
 
+@app.get("/api/reputation")
+async def get_reputation():
+    """Live, adaptive source reputation with priors and deltas."""
+    return await firewall.get_reputation()
+
+
 @app.get("/api/stats")
 async def get_stats():
     stats = await firewall.get_stats()

@@ -4,17 +4,23 @@ Mithril — Configuration
 Matches memory-firewall-master-plan.md Section 7 (config.py).
 """
 
-# Source reputation scores (0.0 – 1.0) — master plan Section 4 table
+# Source reputation scores (0.0 – 1.0) — master plan Section 4 table,
+# extended with common enterprise systems for a realistic threat model.
 SOURCE_REPUTATION: dict[str, float] = {
     "security policy": 0.98,
+    "hr system": 0.95,
     "official docs": 0.95,
     "github pr": 0.90,
+    "jira": 0.85,
     "engineering blog": 0.80,
     "internal wiki": 0.75,
     "slack": 0.60,
     "email": 0.55,
+    "customer support": 0.50,
     "ai agent": 0.40,
+    "external email": 0.40,
     "unknown agent": 0.30,
+    "public web": 0.25,
     "untrusted": 0.10,
 }
 
@@ -42,13 +48,18 @@ COGNEE_QUARANTINE_DATASET: str = "quarantine_memories"
 
 SOURCE_OPTIONS: list[str] = [
     "Security Policy",
+    "HR System",
     "Official Docs",
     "GitHub PR",
+    "Jira",
     "Engineering Blog",
     "Internal Wiki",
     "Slack",
     "Email",
+    "Customer Support",
     "AI Agent",
+    "External Email",
     "Unknown Agent",
+    "Public Web",
     "Untrusted",
 ]

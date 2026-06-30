@@ -1,4 +1,11 @@
 from .firewall import Mithril
+from .ingest import (
+    ParsedMessage,
+    ingest_messages,
+    ingest_slack_export,
+    load_generic_file,
+    load_slack_export,
+)
 from .models import (
     AdmissionResult,
     AdmissionStatus,
@@ -8,6 +15,7 @@ from .models import (
     RecallResult,
     TrustScoreBreakdown,
 )
+from .reputation import ReputationStore
 from .scorer import MAX_THEORETICAL_SCORE, compute_trust_score
 
 __all__ = [
@@ -21,4 +29,10 @@ __all__ = [
     "FirewallStats",
     "compute_trust_score",
     "MAX_THEORETICAL_SCORE",
+    "ReputationStore",
+    "ParsedMessage",
+    "load_slack_export",
+    "load_generic_file",
+    "ingest_messages",
+    "ingest_slack_export",
 ]

@@ -13,27 +13,56 @@ documented in the UI and demo script.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from .config import DEFAULT_REPUTATION, SOURCE_REPUTATION, WEIGHTS
 from .models import ContradictionResult, MemoryClaim, TrustScoreBreakdown
+
+# Freshness decays linearly from MAX (age 0) to 0 over this window.
+FRESHNESS_MAX_BONUS = 0.05
+FRESHNESS_HALFLIFE_DAYS = 90.0
 
 MAX_THEORETICAL_SCORE = (
     max(SOURCE_REPUTATION.values()) * WEIGHTS["source_reputation"]
     + 0.3 * WEIGHTS["corroboration"]
-    + 0.05 * WEIGHTS["freshness"]
+    + FRESHNESS_MAX_BONUS * WEIGHTS["freshness"]
 )
+
+
+def _freshness_bonus(timestamp: datetime | None) -> float:
+    """Newer claims earn more freshness; decays to 0 over FRESHNESS_HALFLIFE_DAYS."""
+    if timestamp is None:
+        return FRESHNESS_MAX_BONUS
+    now = datetime.now(timezone.utc)
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=timezone.utc)
+    age_days = max(0.0, (now - timestamp).total_seconds() / 86400.0)
+    decay = max(0.0, 1.0 - age_days / FRESHNESS_HALFLIFE_DAYS)
+    return round(FRESHNESS_MAX_BONUS * decay, 4)
 
 
 def compute_trust_score(
     claim: MemoryClaim,
     contradiction: ContradictionResult,
     corroboration_count: int = 0,
+    live_reputation: float | None = None,
 ) -> TrustScoreBreakdown:
-    """Compute normalized trust score from weighted signals."""
+    """
+    Compute normalized trust score from weighted signals.
+
+    ``live_reputation`` — when provided (by the firewall, from the adaptive
+    ReputationStore) — overrides the static prior so the score reflects a
+    source's *current* track record, not its seed value.
+    """
     reasons: list[str] = []
 
     source_key = claim.source.lower()
-    source_rep = SOURCE_REPUTATION.get(source_key, DEFAULT_REPUTATION)
-    reasons.append(f"Source '{claim.source}' reputation: {source_rep:.2f}")
+    if live_reputation is not None:
+        source_rep = live_reputation
+        reasons.append(f"Source '{claim.source}' live reputation: {source_rep:.2f}")
+    else:
+        source_rep = SOURCE_REPUTATION.get(source_key, DEFAULT_REPUTATION)
+        reasons.append(f"Source '{claim.source}' reputation: {source_rep:.2f}")
 
     contradiction_penalty = 0.0
     if contradiction.found:
@@ -48,7 +77,9 @@ def compute_trust_score(
     if corroboration_count > 0:
         reasons.append(f"Corroborated by {corroboration_count} other source(s)")
 
-    freshness_bonus = 0.05
+    freshness_bonus = _freshness_bonus(claim.timestamp)
+    if freshness_bonus < FRESHNESS_MAX_BONUS:
+        reasons.append(f"Aged claim — freshness bonus reduced to {freshness_bonus:.3f}")
 
     source_component = source_rep * WEIGHTS["source_reputation"]
     corroboration_component = corroboration_bonus * WEIGHTS["corroboration"]
