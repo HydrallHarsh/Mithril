@@ -3,8 +3,6 @@
 > A trust and governance layer for Cognee memory.  
 > Every AI can remember. **Mithril** decides what *deserves* to be remembered.
 
-*(Formerly "Memory Firewall" — see `memory-firewall-master-plan.md` for the full build plan.)*
-
 ## The Problem
 
 AI agents with persistent memory are vulnerable to **memory poisoning** — where a single malicious message permanently corrupts the knowledge graph that all future agents rely on.
