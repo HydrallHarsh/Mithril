@@ -8,10 +8,6 @@
 
 body {
   @apply bg-surface text-zinc-100 antialiased;
-  background-image:
-    radial-gradient(60rem 40rem at 78% -10%, rgba(34, 211, 238, 0.06), transparent 60%),
-    radial-gradient(50rem 38rem at 12% 8%, rgba(139, 92, 246, 0.07), transparent 55%);
-  background-attachment: fixed;
 }
 
 code {
@@ -37,7 +33,7 @@ code {
 }
 
 .landing-eyebrow {
-  @apply font-body text-xs font-medium uppercase tracking-label text-accent-400/80;
+  @apply font-body text-[0.8rem] font-medium uppercase tracking-widest text-zinc-500;
 }
 
 /* Emerald → cyan → violet brand sweep for accent words / marks. */

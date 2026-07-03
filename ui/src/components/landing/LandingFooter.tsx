@@ -7,15 +7,16 @@ import Link from "next/link";
 export function LandingFooter() {
   return (
     <motion.footer
-      className="border-t border-zinc-800 py-12"
+      className="relative py-12"
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true }}
       variants={fadeUp}
     >
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md border border-memory-500/40 bg-zinc-900 font-mono text-xs text-gradient-brand">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900 font-mono text-xs text-zinc-300">
             M
           </div>
           <span className="text-sm text-zinc-500">

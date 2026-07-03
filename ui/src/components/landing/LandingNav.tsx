@@ -13,7 +13,7 @@ export function LandingNav() {
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-memory-500/40 bg-zinc-900 font-mono text-xs font-semibold text-gradient-brand">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900 font-mono text-xs font-semibold text-zinc-100 shadow-sm">
             M
           </div>
           <span className="font-display text-[0.95rem] font-semibold text-zinc-100">
@@ -33,7 +33,7 @@ export function LandingNav() {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               href="/dashboard"
-              className="rounded-lg bg-brand-400 px-4 py-2 text-sm font-medium text-zinc-950 shadow-lg shadow-brand-500/20 transition-colors hover:bg-brand-300"
+              className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 shadow-sm transition-colors hover:bg-white"
             >
               Dashboard
             </Link>
