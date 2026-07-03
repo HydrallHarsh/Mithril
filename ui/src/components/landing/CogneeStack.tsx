@@ -80,13 +80,13 @@ export function CogneeStack() {
             <motion.p variants={fadeUp} className="landing-eyebrow mb-3 text-brand-400/80">
               The pipeline
             </motion.p>
-            <motion.h2 variants={fadeUp} className="landing-heading text-4xl sm:text-5xl">
+            <motion.h2 variants={fadeUp} className="landing-heading text-5xl sm:text-6xl">
               One path from{" "}
               <span className="text-gradient-brand">claim to verdict.</span>
             </motion.h2>
             <motion.p
               variants={fadeUp}
-              className="mt-5 text-lg leading-relaxed text-zinc-400 sm:text-xl"
+              className="mt-6 text-xl leading-relaxed text-zinc-400 sm:text-2xl"
             >
               Every write goes through all eight steps. Accepted claims still
               get audited. Rejected claims still update source trust. There
@@ -133,11 +133,11 @@ export function CogneeStack() {
                       <span className="font-mono text-xs text-zinc-600">
                         {step.step}
                       </span>
-                      <span className={`text-[0.94rem] font-medium ${step.color}`}>
+                      <span className={`text-base font-medium ${step.color}`}>
                         {step.label}
                       </span>
                     </div>
-                    <p className="mt-0.5 text-sm leading-relaxed text-zinc-500">
+                    <p className="mt-0.5 text-[0.94rem] leading-relaxed text-zinc-500">
                       {step.detail}
                     </p>
                   </div>

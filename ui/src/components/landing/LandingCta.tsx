@@ -46,7 +46,7 @@ export function LandingCta() {
         viewport={{ once: true, margin: "-80px" }}
         variants={scrollRevealStagger}
       >
-        <motion.h2 variants={fadeUp} className="landing-heading text-4xl sm:text-5xl">
+        <motion.h2 variants={fadeUp} className="landing-heading text-5xl sm:text-6xl">
           See it yourself.
           <br />
           <motion.span
@@ -58,7 +58,7 @@ export function LandingCta() {
         </motion.h2>
         <motion.p
           variants={fadeUp}
-          className="mt-5 text-lg leading-relaxed text-zinc-400 sm:text-xl"
+          className="mt-6 text-xl leading-relaxed text-zinc-400 sm:text-2xl"
         >
           The dashboard lets you submit memory claims, see the full trust
           breakdown live, inspect the audit trail, and watch source

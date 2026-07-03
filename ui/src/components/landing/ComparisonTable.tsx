@@ -36,13 +36,13 @@ export function ComparisonTable() {
           <motion.p variants={fadeUp} className="landing-eyebrow mb-3 text-memory-400/80">
             The shield in action
           </motion.p>
-          <motion.h2 variants={fadeUp} className="landing-heading text-4xl sm:text-5xl">
+          <motion.h2 variants={fadeUp} className="landing-heading text-5xl sm:text-6xl">
             A poisoned claim hits the gate.{" "}
             <span className="text-gradient-brand">It does not get through.</span>
           </motion.h2>
           <motion.p
             variants={fadeUp}
-            className="mt-5 text-lg leading-relaxed text-zinc-400 sm:text-xl"
+            className="mt-6 text-xl leading-relaxed text-zinc-400 sm:text-2xl"
           >
             Real scenario from our benchmark. Someone on Slack tries to inject
             bad security advice into agent memory. Here is what happens.

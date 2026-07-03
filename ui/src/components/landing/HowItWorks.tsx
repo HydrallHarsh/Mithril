@@ -67,13 +67,13 @@ export function HowItWorks() {
           <motion.p variants={fadeUp} className="landing-eyebrow mb-3 text-accent-400/80">
             What the shield does
           </motion.p>
-          <motion.h2 variants={fadeUp} className="landing-heading text-4xl sm:text-5xl">
+          <motion.h2 variants={fadeUp} className="landing-heading text-5xl sm:text-6xl">
             Six guards between your agent and{" "}
             <span className="text-gradient-brand">corrupted memory.</span>
           </motion.h2>
           <motion.p
             variants={fadeUp}
-            className="mt-5 text-lg leading-relaxed text-zinc-400 sm:text-xl"
+            className="mt-6 text-xl leading-relaxed text-zinc-400 sm:text-2xl"
           >
             All of this is shipping code. The trust engine, the credential
             scanner, and the reputation tracker are in the repo, tested,
@@ -99,10 +99,10 @@ export function HowItWorks() {
               <div className={`absolute inset-0 bg-gradient-to-br ${feature.accent} opacity-0 transition-opacity duration-500 group-hover:opacity-100`} />
               <div className="relative z-10">
                 <span className="mb-4 inline-block text-2xl">{feature.icon}</span>
-                <h3 className="font-display mb-3 text-xl font-medium tracking-tight text-zinc-100">
+                <h3 className="font-display mb-3 text-2xl font-medium tracking-tight text-zinc-100">
                   {feature.title}
                 </h3>
-                <p className="text-[0.94rem] leading-relaxed text-zinc-400">
+                <p className="text-base leading-relaxed text-zinc-400">
                   {feature.body}
                 </p>
               </div>
