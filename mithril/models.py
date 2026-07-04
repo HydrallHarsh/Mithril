@@ -50,6 +50,8 @@ class TrustScoreBreakdown:
     corroboration_component: float = 0.0
     freshness_component: float = 0.0
     contradiction_component: float = 0.0
+    content_danger_penalty: float = 0.0
+    content_danger_component: float = 0.0
     raw_weighted_score: float = 0.0
 
 
@@ -85,4 +87,5 @@ class AdmissionResult:
     status: AdmissionStatus
     decision_reason: str
     cognee_dataset: Optional[str] = None           # Set if claim was stored in Cognee
+    redacted_secrets: list[str] = field(default_factory=list)  # secret kinds scrubbed pre-storage
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

@@ -26,12 +26,14 @@ SOURCE_REPUTATION: dict[str, float] = {
 
 DEFAULT_REPUTATION: float = 0.35
 
-# Score weights — master plan Section 4 formula
+# Score weights — source reputation and contradiction remain dominant,
+# content_danger penalizes inherently harmful claims.
 WEIGHTS: dict[str, float] = {
     "source_reputation": 0.40,
-    "corroboration": 0.30,
-    "freshness": 0.10,
+    "corroboration": 0.25,
+    "freshness": 0.05,
     "contradiction": -0.40,
+    "content_danger": -0.35,
 }
 
 # Admission thresholds — master plan Section 7 (applied to normalized final_score)

@@ -6,10 +6,10 @@ import { motion, useAnimation } from "framer-motion";
 
 const LINKS = [
   { label: "Dashboard", href: "/dashboard" },
-  { label: "MCP Server", href: "#how-it-works" },
-  { label: "REST API", href: "#how-it-works" },
-  { label: "Run Demo", href: "#comparison" },
-  { label: "Benchmark", href: "#comparison" },
+  { label: "MCP Server", href: "/docs/mcp-server" },
+  { label: "REST API", href: "/docs/rest-api" },
+  { label: "Run Demo", href: "/docs/run-demo" },
+  { label: "Benchmark", href: "/docs/benchmark" },
 ];
 
 export function FloatingDock() {
@@ -22,7 +22,7 @@ export function FloatingDock() {
       const progress = Math.min(window.scrollY / 250, 1);
 
       controls.start({
-        maxWidth: 1280 * progress + 600 * (1 - progress), // Bigger starting width
+        maxWidth: 850 * progress + 600 * (1 - progress), // Bigger starting width
         y: -(progress * 90),
 
         paddingLeft: 18 + progress * 14,

@@ -7,7 +7,7 @@ import { fadeUp, staggerContainer } from "@/components/landing/motion";
 
 export function HeroSection() {
   return (
-    <section className="relative flex min-h-screen flex-col items-center overflow-hidden pb-24 pt-28 sm:pt-32">
+    <section className="relative flex min-h-screen flex-col items-center overflow-hidden pb-28 pt-28 sm:pt-32">
       <HeroBackground />
 
       <motion.div
@@ -31,7 +31,7 @@ export function HeroSection() {
 
         <motion.h1
           variants={fadeUp}
-          className="font-hero text-[2.35rem] font-bold leading-[1.08] text-white sm:text-5xl md:text-[3.4rem]"
+          className="font-hero text-[2.35rem] font-bold leading-[1.08] text-white sm:text-5xl md:text-[4.1rem]"
         >
           Stop poisoned claims
           <br />
@@ -47,7 +47,7 @@ export function HeroSection() {
 
         <motion.p
           variants={fadeUp}
-          className="mt-6 max-w-xl text-base leading-[1.7] text-zinc-400 sm:text-[1.05rem]"
+          className="mt-6 max-w-xl text-base leading-[1.7] text-zinc-400 sm:text-[1.3rem]"
         >
           Mithril sits between your agent and Cognee — scoring source
           reputation, checking contradictions against verified memory, and
@@ -55,10 +55,10 @@ export function HeroSection() {
         </motion.p>
 
         <motion.div variants={fadeUp}>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.95 }}>
             <Link
               href="/dashboard"
-              className="mt-10 inline-flex items-center gap-2 rounded-lg bg-brand-400 px-8 py-3.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-brand-500/20 transition-colors hover:bg-brand-300"
+              className="mt-10 inline-flex items-center gap-2 rounded-lg bg-brand-400 px-8 py-3.5 text-xl font-semibold text-zinc-950 shadow-lg shadow-brand-500/20 transition-colors hover:bg-brand-300"
             >
               Open dashboard
               <span aria-hidden>→</span>

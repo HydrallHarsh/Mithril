@@ -33,6 +33,7 @@ def admission_result_to_dict(result: AdmissionResult) -> dict[str, Any]:
         "decision_reason": result.decision_reason,
         "trust_breakdown": trust_breakdown_to_dict(result.trust_breakdown),
         "reasons": result.trust_breakdown.reasons,
+        "redacted_secrets": result.redacted_secrets,
         "entered_cognee": result.cognee_dataset is not None,
         "cognee_dataset": result.cognee_dataset,
         "timestamp": result.timestamp.isoformat(),

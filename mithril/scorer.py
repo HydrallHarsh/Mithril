@@ -1,14 +1,17 @@
 """
 Mithril — Trust Scorer
 ======================
-Master plan Section 7 weighted formula::
+Weighted formula::
 
-    raw = source_rep * 0.40 + corroboration * 0.30 + freshness * 0.10
+    raw = source_rep * 0.40 + corroboration * 0.25 + freshness * 0.05
           - contradiction * 0.40
+          - content_danger * 0.35
 
-Raw weighted sums top out around 0.49.  We normalize to [0, 1] so the
-master plan admission thresholds (0.85 / 0.60 / 0.40 / 0.20) apply as
-documented in the UI and demo script.
+The content_danger signal catches inherently harmful claims (e.g.
+"store passwords in plaintext") even when no contradicting memory exists.
+
+Raw weighted sums are normalized to [0, 1] so the admission thresholds
+(0.85 / 0.60 / 0.40 / 0.20) apply as documented.
 """
 
 from __future__ import annotations
@@ -46,6 +49,7 @@ def compute_trust_score(
     contradiction: ContradictionResult,
     corroboration_count: int = 0,
     live_reputation: float | None = None,
+    content_danger: float = 0.0,
 ) -> TrustScoreBreakdown:
     """
     Compute normalized trust score from weighted signals.
@@ -53,6 +57,9 @@ def compute_trust_score(
     ``live_reputation`` — when provided (by the firewall, from the adaptive
     ReputationStore) — overrides the static prior so the score reflects a
     source's *current* track record, not its seed value.
+
+    ``content_danger`` — LLM-assessed inherent danger of the claim itself
+    (0.0 = safe, 1.0 = actively malicious), independent of memory state.
     """
     reasons: list[str] = []
 
@@ -77,6 +84,13 @@ def compute_trust_score(
     if corroboration_count > 0:
         reasons.append(f"Corroborated by {corroboration_count} other source(s)")
 
+    # Content danger — independent of memory state
+    content_danger_penalty = content_danger
+    if content_danger > 0.3:
+        reasons.append(
+            f"Content flagged as dangerous (score: {content_danger:.2f})"
+        )
+
     freshness_bonus = _freshness_bonus(claim.timestamp)
     if freshness_bonus < FRESHNESS_MAX_BONUS:
         reasons.append(f"Aged claim — freshness bonus reduced to {freshness_bonus:.3f}")
@@ -85,12 +99,14 @@ def compute_trust_score(
     corroboration_component = corroboration_bonus * WEIGHTS["corroboration"]
     freshness_component = freshness_bonus * WEIGHTS["freshness"]
     contradiction_component = contradiction_penalty * abs(WEIGHTS["contradiction"])
+    content_danger_component = content_danger_penalty * abs(WEIGHTS.get("content_danger", 0.35))
 
     raw_weighted = (
         source_component
         + corroboration_component
         + freshness_component
         - contradiction_component
+        - content_danger_component
     )
     raw_weighted = max(0.0, raw_weighted)
     final = min(1.0, raw_weighted / MAX_THEORETICAL_SCORE)
@@ -98,7 +114,8 @@ def compute_trust_score(
     reasons.append(
         f"Weighted sum: {raw_weighted:.2f} "
         f"(source {source_component:.2f}, corroboration +{corroboration_component:.2f}, "
-        f"freshness +{freshness_component:.2f}, contradiction -{contradiction_component:.2f})"
+        f"freshness +{freshness_component:.2f}, contradiction -{contradiction_component:.2f}, "
+        f"content_danger -{content_danger_component:.2f})"
     )
     reasons.append(
         f"Normalized trust score: {final:.2f} "
@@ -110,10 +127,12 @@ def compute_trust_score(
         contradiction_penalty=contradiction_penalty,
         corroboration_bonus=corroboration_bonus,
         freshness_bonus=freshness_bonus,
+        content_danger_penalty=content_danger_penalty,
         source_component=source_component,
         corroboration_component=corroboration_component,
         freshness_component=freshness_component,
         contradiction_component=contradiction_component,
+        content_danger_component=content_danger_component,
         raw_weighted_score=raw_weighted,
         final_score=final,
         reasons=reasons,

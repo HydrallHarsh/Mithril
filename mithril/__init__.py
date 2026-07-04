@@ -17,6 +17,7 @@ from .models import (
 )
 from .reputation import ReputationStore
 from .scorer import MAX_THEORETICAL_SCORE, compute_trust_score
+from .secrets import contains_secret, redact_secrets, scan as scan_secrets
 
 __all__ = [
     "Mithril",
@@ -35,4 +36,7 @@ __all__ = [
     "load_generic_file",
     "ingest_messages",
     "ingest_slack_export",
+    "redact_secrets",
+    "contains_secret",
+    "scan_secrets",
 ]

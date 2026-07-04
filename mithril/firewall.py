@@ -25,6 +25,7 @@ from .models import (
 from .quarantine import QuarantineStore
 from .reputation import ReputationStore
 from .scorer import compute_trust_score
+from .secrets import redact_secrets
 from .utils import extract_recall_texts
 
 logger = logging.getLogger(__name__)
@@ -52,15 +53,21 @@ class Mithril:
         metadata: dict | None = None,
     ) -> AdmissionResult:
         """Submit a memory claim through the full governance pipeline."""
+        # Defense in depth: strip credentials BEFORE anything else, so no secret
+        # ever reaches Cognee, the LLM, the audit log, or the reputation store —
+        # even if the claim is otherwise accepted.
+        redacted_text, secret_matches = redact_secrets(text)
+        redacted_kinds = [m.kind for m in secret_matches]
+
         claim = MemoryClaim(
-            text=text,
+            text=redacted_text,
             source=source,
             author=author,
             metadata=metadata or {},
         )
 
         live_reputation = await self.reputation.get(source)
-        contradiction, corroboration_count = await analyze_against_verified_memory(
+        contradiction, corroboration_count, content_danger = await analyze_against_verified_memory(
             claim.text
         )
         trust_score = compute_trust_score(
@@ -68,6 +75,7 @@ class Mithril:
             contradiction,
             corroboration_count,
             live_reputation=live_reputation,
+            content_danger=content_danger,
         )
         status, decision_reason = decide_admission(trust_score)
 
@@ -76,16 +84,27 @@ class Mithril:
             trust_breakdown=trust_score,
             status=status,
             decision_reason=decision_reason,
+            redacted_secrets=redacted_kinds,
         )
 
-        await self._apply_decision(result, text, source, status)
+        if redacted_kinds:
+            trust_score.reasons.append(
+                f"Exfiltration guard: redacted {len(redacted_kinds)} credential(s) "
+                f"before storage ({', '.join(sorted(set(redacted_kinds)))}) — "
+                f"treated as a trust-damaging policy violation"
+            )
+
+        await self._apply_decision(result, redacted_text, source, status)
         await self.audit.log(result)
 
-        # Adapt the source's reputation based on how this claim landed.
+        # Adapt the source's reputation based on how this claim landed. A
+        # credential-planting attempt counts against the source the same way a
+        # contradiction does — this is what makes secrets part of Mithril's
+        # trust system rather than a standalone privacy scrub.
         new_rep = await self.reputation.update_on_decision(
             source=source,
             status=result.status.value,
-            contradiction_found=contradiction.found,
+            contradiction_found=contradiction.found or bool(redacted_kinds),
         )
         if abs(new_rep - live_reputation) >= 0.005:
             arrow = "↓" if new_rep < live_reputation else "↑"
@@ -163,6 +182,8 @@ class Mithril:
             if parts
             else "No verified memories found for this query."
         )
+        # Defense in depth: scrub any secret that predates the firewall.
+        answer, _ = redact_secrets(answer)
         return RecallResult(
             query=query,
             answer=answer,

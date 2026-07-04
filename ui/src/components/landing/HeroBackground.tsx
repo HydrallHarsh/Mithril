@@ -123,7 +123,7 @@ export function HeroBackground() {
 
       {/* Layers 2–6 — SVG memory shield scene */}
       <svg
-        className="absolute inset-0 z-0 h-full w-full opacity-75"
+        className="absolute inset-0 z-0 h-full w-full opacity-98"
         viewBox="0 0 1024 1024"
         preserveAspectRatio="xMidYMid slice"
         aria-hidden
