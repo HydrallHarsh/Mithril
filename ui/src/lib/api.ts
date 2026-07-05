@@ -1,6 +1,7 @@
 import type {
   AppConfig,
   AuditEntry,
+  BenchmarkResults,
   ConnectionMode,
   DashboardStats,
   RecallResult,
@@ -42,6 +43,10 @@ export async function fetchConfig(): Promise<AppConfig> {
 
 export async function fetchReputation(): Promise<ReputationEntry[]> {
   return readJson<ReputationEntry[]>("/api/reputation");
+}
+
+export async function fetchBenchmarkResults(): Promise<BenchmarkResults> {
+  return readJson<BenchmarkResults>("/api/benchmark-results");
 }
 
 export async function submitRemember(body: {

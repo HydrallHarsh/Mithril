@@ -278,7 +278,7 @@ export function HeroBackground() {
       </svg>
 
       {/* Layer 7 — slow ambient purple blobs */}
-      <div className="absolute inset-0 z-[1] overflow-hidden">
+      {/* <div className="absolute inset-0 z-[1] overflow-hidden">
         <motion.div
           animate={{ x: [0, 50, -50, 0], y: [0, -30, 30, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -289,7 +289,7 @@ export function HeroBackground() {
           transition={{ duration: 25, repeat: Infinity, ease: "linear", delay: 2 }}
           className="absolute -right-40 bottom-20 h-96 w-96 rounded-full bg-cyan-500/20 blur-3xl"
         />
-      </div>
+      </div> */}
 
       {/* Layer 8 — readability gradient + section blend */}
       <div className="absolute inset-0 z-[2] bg-gradient-to-b from-black/20 via-black/50 to-black" />

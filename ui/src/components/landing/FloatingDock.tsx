@@ -5,11 +5,12 @@ import Link from "next/link";
 import { motion, useAnimation } from "framer-motion";
 
 const LINKS = [
+  { label: "Try Demo", href: "/demo" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "MCP Server", href: "/docs/mcp-server" },
   { label: "REST API", href: "/docs/rest-api" },
   { label: "Run Demo", href: "/docs/run-demo" },
-  { label: "Benchmark", href: "/docs/benchmark" },
+  { label: "Results", href: "/benchmark-results" },
 ];
 
 export function FloatingDock() {
@@ -22,7 +23,7 @@ export function FloatingDock() {
       const progress = Math.min(window.scrollY / 250, 1);
 
       controls.start({
-        maxWidth: 1000 * progress + 600 * (1 - progress), // Bigger starting width
+        maxWidth: 1100 * progress + 750 * (1 - progress), // Bigger starting width
         y: -(progress * 50) - 50,
 
         paddingLeft: 18 + progress * 14,
@@ -53,7 +54,7 @@ export function FloatingDock() {
     <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center pointer-events-none">
       <motion.nav
         initial={{
-          maxWidth: 600,
+          maxWidth: 800,
           y: 0,
           paddingLeft: 18,
           paddingRight: 18,

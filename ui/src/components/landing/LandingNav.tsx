@@ -30,12 +30,36 @@ export function LandingNav() {
           >
             Compare
           </motion.a>
+          <motion.div
+            className="hidden sm:block"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link
+              href="/docs"
+              className="text-sm text-zinc-400 transition hover:text-zinc-100"
+            >
+              Docs
+            </Link>
+          </motion.div>
+          <motion.div
+            className="hidden sm:block"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link
+              href="/benchmark-results"
+              className="text-sm text-zinc-400 transition hover:text-zinc-100"
+            >
+              Results
+            </Link>
+          </motion.div>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
-              href="/dashboard"
+              href="/demo"
               className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 shadow-sm transition-colors hover:bg-white"
             >
-              Dashboard
+              Try Demo
             </Link>
           </motion.div>
         </div>

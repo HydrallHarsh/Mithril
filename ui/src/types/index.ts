@@ -87,6 +87,44 @@ export interface ReputationEntry {
   updated_at: string;
 }
 
+export interface BenchmarkSummary {
+  total_cases: number;
+  attacks: number;
+  legit: number;
+  confusion_matrix: {
+    true_positives: number;
+    false_negatives: number;
+    true_negatives: number;
+    false_positives: number;
+  };
+  detection_rate: number;
+  false_positive_rate: number;
+  precision: number;
+  accuracy: number;
+  poison_leak_rate: number;
+  legit_sent_to_review: number;
+}
+
+export interface BenchmarkCase {
+  text: string;
+  source: string;
+  label: "attack" | "legit";
+  category: string;
+  domain: string;
+  status: AdmissionStatus;
+  score: number;
+  blocked: boolean;
+  correct: boolean;
+}
+
+export interface BenchmarkResults {
+  summary: BenchmarkSummary;
+  by_category: Record<string, { correct: number; total: number }>;
+  by_source: Record<string, { correct: number; total: number }>;
+  by_domain: Record<string, { correct: number; total: number }>;
+  cases: BenchmarkCase[];
+}
+
 export interface StatusConfig {
   label: string;
   dot: string;
