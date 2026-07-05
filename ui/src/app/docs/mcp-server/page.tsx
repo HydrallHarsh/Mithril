@@ -43,7 +43,7 @@ export default function McpServerPage() {
           <InfoCard icon="📊" title="Live Source Reputation">
             <code>mithril_source_reputation</code> shows adaptive trust scores.
             Sources caught contradicting verified memory lose trust over time;
-            corroborated sources gain it.
+            accepted sources gain it slowly.
           </InfoCard>
         </section>
 
@@ -67,28 +67,41 @@ pip install -e ".[dev]"`}
             <StepCard step={2} title="Set environment variables">
               <p className="mb-3">
                 Copy <code>.env.example</code> to <code>.env</code> and set your
-                LLM API key (needed for contradiction detection):
+                LLM API key (needed for contradiction and content-danger
+                scoring):
               </p>
               <CodeBlock
-                code={`cp .env.example .env
-# Edit .env and set LLM_API_KEY=sk-...`}
+                code={`# macOS / Linux / WSL
+cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
+
+# Edit .env and set LLM_API_KEY, LLM_ENDPOINT, and LLM_MODEL.`}
                 filename="terminal"
               />
             </StepCard>
 
             <StepCard step={3} title="Start the MCP server">
-              <p className="mb-3">Run via Make or directly with Python:</p>
+              <p className="mb-3">
+                For a manual smoke test, run via Make on Windows or directly
+                with Python on any OS:
+              </p>
               <CodeBlock
-                code={`make mcp
-# or
+                code={`# Windows, using this repo's Makefile
+make mcp
+
+# macOS / Linux / WSL
 python -m mcp_server.server`}
                 filename="terminal"
               />
             </StepCard>
 
-            <StepCard step={4} title="Register in Claude Desktop">
+            <StepCard step={4} title="Register in an MCP host">
               <p className="mb-3">
-                Add Mithril to your Claude Desktop config:
+                MCP hosts launch the server for you, so use absolute paths for
+                both <code>command</code> and <code>cwd</code>. Replace the
+                sample path with your local repo path.
               </p>
               <CodeBlock
                 language="json"
@@ -96,14 +109,56 @@ python -m mcp_server.server`}
                 code={`{
   "mcpServers": {
     "mithril": {
-      "command": "python",
+      "command": "/absolute/path/to/hack-ideas2/.venv/bin/python",
       "args": ["-m", "mcp_server.server"],
       "cwd": "/absolute/path/to/hack-ideas2"
     }
   }
 }`}
               />
+              <p className="mt-3">
+                On Windows, the command path usually looks like{" "}
+                <code>{"C:\\Users\\you\\path\\hack-ideas2\\.venv\\Scripts\\python.exe"}</code>.
+                In WSL, use the Linux path inside WSL and configure the IDE that
+                is running inside WSL.
+              </p>
             </StepCard>
+          </div>
+        </section>
+
+        {/* IDE setup */}
+        <section>
+          <h2 className="landing-heading mb-5 text-xl">IDE Settings</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <InfoCard icon="🖥️" title="Claude Desktop">
+              Add the server under <code>mcpServers</code> in{" "}
+              <code>claude_desktop_config.json</code>, then fully restart Claude
+              Desktop. Common config locations are{" "}
+              <code>{"%APPDATA%\\Claude"}</code> on Windows and{" "}
+              <code>~/Library/Application Support/Claude</code> on macOS.
+            </InfoCard>
+            <InfoCard icon="⌨️" title="Cursor">
+              Add the same server object in Cursor&apos;s MCP settings or in a
+              workspace <code>.cursor/mcp.json</code> file if your Cursor version
+              supports project-level MCP configuration. Keep <code>cwd</code>{" "}
+              pointed at the repo root so <code>load_dotenv()</code> finds{" "}
+              <code>.env</code>.
+            </InfoCard>
+          </div>
+          <div className="mt-4">
+            <CodeBlock
+              language="json"
+              filename=".cursor/mcp.json"
+              code={`{
+  "mcpServers": {
+    "mithril": {
+      "command": "/absolute/path/to/hack-ideas2/.venv/bin/python",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "/absolute/path/to/hack-ideas2"
+    }
+  }
+}`}
+            />
           </div>
         </section>
 
@@ -153,15 +208,15 @@ python -m mcp_server.server`}
             <CodeBlock
               language="text"
               filename="Example response"
-              code={`Decision: ACCEPT (STORED in verified memory)
-Trust score: 0.91
-Reason: High-trust source with no contradictions
+              code={`Decision: WARN (STORED in verified memory)
+Trust score: 0.84
+Reason: Score 0.84 accepted with warning — low confidence
 
 Breakdown:
-  - Source reputation (Security Policy): 0.98
-  - Corroboration bonus: +0.12
-  - Freshness bonus: +0.10
-  - No contradiction detected`}
+  - Source 'Security Policy' live reputation: 0.98
+  - No contradictions found in verified memory
+  - Weighted sum: 0.39 (source 0.39, corroboration +0.00, freshness +0.00, contradiction -0.00, content_danger -0.00)
+  - Normalized trust score: 0.84 (÷ 0.47 max theoretical)`}
             />
           </div>
 
@@ -215,7 +270,7 @@ Breakdown:
             <p className="text-sm text-zinc-400">
               Show Mithril&apos;s current, adaptive trust score for every known
               source. Sources caught contradicting verified memory lose trust;
-              corroborated sources gain it.
+              accepted sources gain it slowly.
             </p>
           </div>
         </section>

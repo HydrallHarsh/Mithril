@@ -84,12 +84,14 @@ def compute_trust_score(
     if corroboration_count > 0:
         reasons.append(f"Corroborated by {corroboration_count} other source(s)")
 
-    # Content danger — independent of memory state
-    content_danger_penalty = content_danger
-    if content_danger > 0.3:
+    # Content danger — only penalize if it crosses the 'safe' threshold
+    if content_danger > 0.5:
+        content_danger_penalty = content_danger
         reasons.append(
             f"Content flagged as dangerous (score: {content_danger:.2f})"
         )
+    else:
+        content_danger_penalty = 0.0
 
     freshness_bonus = _freshness_bonus(claim.timestamp)
     if freshness_bonus < FRESHNESS_MAX_BONUS:

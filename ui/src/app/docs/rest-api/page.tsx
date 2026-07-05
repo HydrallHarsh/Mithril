@@ -36,8 +36,10 @@ export default function RestApiPage() {
             <StepCard step={1} title="Start the API server">
               <CodeBlock
                 code={`make api
-# or
-uvicorn api.main:app --port 8000 --reload`}
+# Windows Makefile runs: .venv\\Scripts\\python.exe -m uvicorn api.main:app --port 8000 --reload
+
+# macOS / Linux / WSL
+python -m uvicorn api.main:app --port 8000 --reload`}
                 filename="terminal"
               />
               <p className="mt-2">
@@ -76,6 +78,12 @@ uvicorn api.main:app --port 8000 --reload`}
         {/* Endpoints */}
         <section>
           <h2 className="landing-heading mb-5 text-xl">Endpoints</h2>
+          <p className="mb-4 text-sm text-zinc-400">
+            These paths are served by the FastAPI backend on{" "}
+            <code>localhost:8000</code>. The Next.js dashboard also exposes
+            proxy routes under <code>/api</code> for the UI; use the FastAPI URL
+            directly when calling <code>/api/quarantine</code>.
+          </p>
 
           <div className="space-y-3">
             <Endpoint
@@ -133,7 +141,7 @@ uvicorn api.main:app --port 8000 --reload`}
           </h2>
           <p className="mb-4 text-sm text-zinc-400">
             Submit a text claim for trust scoring and conditional storage into
-            Cognee. Returns the admission decision, full trust-score breakdown,
+            Cognee. Returns the admission decision, serialized trust-score breakdown,
             and any secrets that were redacted.
           </p>
 
@@ -172,22 +180,36 @@ uvicorn api.main:app --port 8000 --reload`}
             language="json"
             filename="200 OK"
             code={`{
+  "text": "Argon2id with cost factor 12 is now mandatory.",
+  "source": "Security Policy",
+  "author": "policy_admin",
   "status": "accept",
-  "decision_reason": "High-trust source, no contradictions",
+  "trust_score": 0.89,
+  "decision_reason": "Score 0.89 meets acceptance threshold (≥ 0.85)",
   "trust_breakdown": {
     "source_reputation": 0.98,
     "contradiction_penalty": 0.0,
-    "corroboration_bonus": 0.0,
-    "freshness_bonus": 0.10,
-    "final_score": 0.91,
+    "corroboration_bonus": 0.1,
+    "freshness_bonus": 0.05,
+    "source_component": 0.392,
+    "corroboration_component": 0.025,
+    "freshness_component": 0.0025,
+    "contradiction_component": 0.0,
+    "raw_weighted_score": 0.4195,
+    "final_score": 0.89,
     "reasons": [
-      "Source reputation (Security Policy): 0.98",
-      "Freshness bonus: +0.10",
-      "No contradiction detected"
+      "Source 'Security Policy' live reputation: 0.98",
+      "No contradictions found in verified memory",
+      "Corroborated by 1 other source(s)",
+      "Weighted sum: 0.42 (source 0.39, corroboration +0.03, freshness +0.00, contradiction -0.00, content_danger -0.00)",
+      "Normalized trust score: 0.89 (÷ 0.47 max theoretical)"
     ]
   },
+  "reasons": ["..."],
+  "redacted_secrets": [],
+  "entered_cognee": true,
   "cognee_dataset": "verified_memories",
-  "redacted_secrets": []
+  "timestamp": "2026-07-05T00:00:00+00:00"
 }`}
           />
         </section>

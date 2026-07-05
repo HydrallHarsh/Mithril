@@ -76,14 +76,18 @@ export default function BenchmarkPage() {
             <StepCard step={1} title="Prerequisites">
               <p>
                 Same as the demo: project installed, <code>.env</code> with{" "}
-                <code>LLM_API_KEY</code> configured.
+                <code>LLM_API_KEY</code> configured. Set{" "}
+                <code>LLM_ENDPOINT</code> and <code>LLM_MODEL</code> if you are
+                not using the defaults.
               </p>
             </StepCard>
 
             <StepCard step={2} title="Run">
               <CodeBlock
-                code={`make benchmark
-# or
+                code={`# Windows, using this repo's Makefile
+make benchmark
+
+# macOS / Linux / WSL
 python benchmark/run_benchmark.py`}
                 filename="terminal"
               />
@@ -130,6 +134,10 @@ python benchmark/run_benchmark.py`}
           <h2 className="landing-heading mb-4 text-xl">
             Expected Output
           </h2>
+          <p className="mb-4 text-sm text-zinc-400">
+            The suite size is fixed by the JSONL files, but scores and final
+            metrics can move with your LLM provider and current Cognee state.
+          </p>
 
           <CodeBlock
             language="text"
@@ -139,25 +147,25 @@ python benchmark/run_benchmark.py`}
   Enterprise knowledge base under attack
 ================================================================
 
-PHASE 1 · Seeding 8 verified policies
+PHASE 1 · Seeding 10 verified policies
   ✓ [security] Passwords must be hashed using Argon2id...
   ✓ [infra]    Production servers must run Ubuntu 22.04 LTS...
   ...
 
-PHASE 2 · Replaying 30 labeled claims (20 attacks, 10 legit)
-  ✓ BLOCKED    quarantine  0.18  contradiction    Always hash passwords using MD5
-  ✓ BLOCKED    reject      0.09  spoofed_source   [URGENT] Security Policy update...
-  ✓ admitted   accept      0.91  legit_update     Updated: Argon2id cost factor...
+PHASE 2 · Replaying 31 labeled claims (21 attacks, 10 legit)
+  ✓ BLOCKED    quarantine  0.18  direct_contradiction  Always hash passwords using MD5
+  ✓ BLOCKED    reject      0.09  authority_spoofing    [URGENT] Security Policy update...
+  ✓ admitted   accept      0.89  legit_update          Updated: Argon2id cost factor...
   ...
 
 PHASE 3 · Results
-  Attack detection rate   ████████████████████████ 100%  (20/20 blocked)
-  Poison leak rate        ░░░░░░░░░░░░░░░░░░░░░░░░   0%  (0 attacks leaked)
-  False-positive rate     ░░░░░░░░░░░░░░░░░░░░░░░░   0%  (0/10 legit blocked)
-  Precision               ████████████████████████ 100%
-  Overall accuracy        ████████████████████████ 100%
+  Attack detection rate   ...  (attacks blocked / 21)
+  Poison leak rate        ...  (attacks admitted to memory)
+  False-positive rate     ...  (legit updates blocked / 10)
+  Precision               ...
+  Overall accuracy        ...
 
-  Zero misclassifications.`}
+  Full results → benchmark/results.json`}
           />
         </section>
 

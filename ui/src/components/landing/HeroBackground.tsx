@@ -123,7 +123,7 @@ export function HeroBackground() {
 
       {/* Layers 2–6 — SVG memory shield scene */}
       <svg
-        className="absolute inset-0 z-0 h-full w-full opacity-98"
+        className="absolute inset-0 z-0 h-full w-full"
         viewBox="0 0 1024 1024"
         preserveAspectRatio="xMidYMid slice"
         aria-hidden
@@ -177,8 +177,8 @@ export function HeroBackground() {
             r={SHIELD_RADIUS}
             fill="none"
             stroke="rgba(139, 92, 246, 0.3)"
-            strokeWidth="2.5"
-            opacity="0.5"
+            strokeWidth="3"
+            opacity="0.9"
           />
 
           {/* Layer 3 — pulsing memory core */}
@@ -206,7 +206,7 @@ export function HeroBackground() {
               animate={{
                 cx: [node.startX, node.startX + node.driftX, node.startX],
                 cy: [node.startY, node.startY + node.driftY, node.startY],
-                opacity: [0.4, 0.8, 0.4],
+                opacity: [0.6, 0.8, 0.6],
               }}
               transition={{ duration: node.duration, repeat: Infinity }}
             />

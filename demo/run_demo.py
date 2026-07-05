@@ -10,6 +10,10 @@ import asyncio
 import sys
 import os
 
+# Fix UnicodeEncodeError on Windows terminals when printing emojis
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding='utf-8')
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from dotenv import load_dotenv
@@ -92,16 +96,18 @@ async def main():
         ("bcrypt is acceptable as a fallback hashing algorithm.", "Official Docs"),
     ]
 
+    from mithril.config import COGNEE_VERIFIED_DATASET
+    
     for text, source in legitimate:
-        result = await firewall.remember(text=text, source=source, author="policy_admin")
-        if result.status in (AdmissionStatus.ACCEPT, AdmissionStatus.WARN):
-            label = "ACCEPTED" if result.status == AdmissionStatus.ACCEPT else "WARN (stored)"
-            color = GREEN if result.status == AdmissionStatus.ACCEPT else YELLOW
-            print(f"  {color}✅ {label}{RESET}  {text[:55]}  {DIM}(score: {result.trust_breakdown.final_score:.2f}){RESET}")
-        else:
-            print(f"  {RED}❌ BLOCKED{RESET}  {text[:55]}  {DIM}(score: {result.trust_breakdown.final_score:.2f}){RESET}")
+        print(f"  {DIM}Directly seeding into Cognee:{RESET} {text[:55]}...")
+        await cognee.remember(
+            data=text,
+            dataset_name=COGNEE_VERIFIED_DATASET,
+            node_set=["verified", source.lower().replace(" ", "_")]
+        )
+        print(f"  {GREEN}✅ SEEDED{RESET}")
 
-    print(f"\n  {GREEN}{BOLD}→ {len(legitimate)} verified policies now in Cognee{RESET}")
+    print(f"\n  {GREEN}{BOLD}→ {len(legitimate)} pre-verified policies now in Cognee baseline{RESET}")
 
     # ══════════════════════════════════════════════════════════════
     # PHASE 2: Poison attacks

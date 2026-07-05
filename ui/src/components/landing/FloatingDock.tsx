@@ -22,8 +22,8 @@ export function FloatingDock() {
       const progress = Math.min(window.scrollY / 250, 1);
 
       controls.start({
-        maxWidth: 850 * progress + 600 * (1 - progress), // Bigger starting width
-        y: -(progress * 90),
+        maxWidth: 1000 * progress + 600 * (1 - progress), // Bigger starting width
+        y: -(progress * 50) - 50,
 
         paddingLeft: 18 + progress * 14,
         paddingRight: 18 + progress * 14,
@@ -32,10 +32,15 @@ export function FloatingDock() {
         paddingBottom: 11 + progress * 3,
 
         gap: 12 + progress * 12,
+
+        backgroundColor: `rgba(9, 9, 11, ${1 - progress * 0.6})`, // Goes from 1.0 to 0.4 opacity
       });
     };
 
-    handleScroll();
+    // Defer the initial calculation so Framer Motion has time to mount the controls
+    requestAnimationFrame(() => {
+      handleScroll();
+    });
 
     window.addEventListener("scroll", handleScroll, {
       passive: true,
@@ -55,6 +60,7 @@ export function FloatingDock() {
           paddingTop: 11,
           paddingBottom: 11,
           gap: 12,
+          backgroundColor: "rgba(9, 9, 11, 1)",
         }}
         animate={controls}
         transition={{
@@ -70,7 +76,6 @@ export function FloatingDock() {
           rounded-full
           border
           border-zinc-800/70
-          bg-zinc-950/90
           backdrop-blur-xl
           shadow-2xl
           overflow-hidden

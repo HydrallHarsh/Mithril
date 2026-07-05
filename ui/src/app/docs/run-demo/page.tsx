@@ -21,8 +21,8 @@ export default function RunDemoPage() {
               end-to-end attack simulation
             </span>{" "}
             that demonstrates how Mithril protects Cognee memory from poisoning.
-            Seeds legitimate policies, fires off attacks, and proves the firewall
-            blocks every one.
+            Seeds legitimate policies, fires off attacks, and shows which writes
+            are admitted, reviewed, quarantined, or rejected.
           </p>
         </header>
 
@@ -35,8 +35,9 @@ export default function RunDemoPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <InfoCard icon="📋" title="Phase 1 — Seed Legitimate Memory">
               Loads 3 verified security policies (Argon2id hashing, cost factor
-              requirements, bcrypt fallback) from trusted sources into Cognee
-              through Mithril&apos;s trust gate.
+              requirements, bcrypt fallback) directly into the verified Cognee
+              dataset to establish the clean baseline the attacks are checked
+              against.
             </InfoCard>
             <InfoCard icon="⚡" title="Phase 2 — Simulate Attacks">
               Fires 3 poisoning attempts: a direct contradiction via Slack
@@ -63,13 +64,19 @@ export default function RunDemoPage() {
               <p>
                 Make sure you have the project installed and <code>.env</code>{" "}
                 configured with your <code>LLM_API_KEY</code> (needed for
-                contradiction detection via the LLM):
+                contradiction and content-danger scoring via the LLM):
               </p>
               <div className="mt-3">
                 <CodeBlock
                   code={`uv pip install -e ".[dev]"
+
+# macOS / Linux / WSL
 cp .env.example .env
-# Set LLM_API_KEY in .env`}
+
+# Windows PowerShell
+Copy-Item .env.example .env
+
+# Set LLM_API_KEY, LLM_ENDPOINT, and LLM_MODEL in .env`}
                   filename="terminal"
                 />
               </div>
@@ -77,8 +84,10 @@ cp .env.example .env
 
             <StepCard step={2} title="Run the attack demo">
               <CodeBlock
-                code={`make demo
-# or
+                code={`# Windows, using this repo's Makefile
+make demo
+
+# macOS / Linux / WSL
 python demo/run_demo.py`}
                 filename="terminal"
               />
@@ -90,8 +99,10 @@ python demo/run_demo.py`}
                 claims are stored and returned:
               </p>
               <CodeBlock
-                code={`make vanilla
-# or
+                code={`# Windows, using this repo's Makefile
+make vanilla
+
+# macOS / Linux / WSL
 python demo/vanilla_demo.py`}
                 filename="terminal"
               />
@@ -105,8 +116,9 @@ python demo/vanilla_demo.py`}
             Expected Output
           </h2>
           <p className="mb-4 text-sm text-zinc-400">
-            The demo prints a colorized, step-by-step report. Here&apos;s a
-            summary of what you&apos;ll see:
+            The demo prints a colorized, step-by-step report. Exact scores and
+            statuses can vary with the configured LLM, but the flow looks like
+            this:
           </p>
 
           <CodeBlock
@@ -118,25 +130,25 @@ python demo/vanilla_demo.py`}
 ============================================================
 
 PHASE 1: Loading legitimate security policies
-  ✅ ACCEPTED  Passwords must be hashed using Argon2id...  (score: 0.91)
-  ✅ ACCEPTED  Argon2id requires minimum cost factor...    (score: 0.91)
-  ✅ ACCEPTED  bcrypt is acceptable as a fallback...       (score: 0.89)
-  → 3 verified policies now in Cognee
+  Directly seeding into Cognee: Passwords must be hashed using Argon2id...
+  ✅ SEEDED
+  Directly seeding into Cognee: Argon2id requires minimum cost factor...
+  ✅ SEEDED
+  Directly seeding into Cognee: bcrypt is acceptable as a fallback...
+  ✅ SEEDED
+  → 3 pre-verified policies now in Cognee baseline
 
 PHASE 2: Simulating memory poisoning attacks
   ⚡ Attack 1: Direct contradiction via Slack
-    🚫 QUARANTINE
-    Score:  0.18
-    Reason: Contradicts verified memory
+    🚫 QUARANTINE / ❌ REJECT
+    Reason: Low trust, contradiction, or dangerous content
 
   ⚡ Attack 2: Subtle deprecation claim from unknown agent
-    ❌ REJECT
-    Score:  0.09
-    Reason: Low-trust source + contradiction detected
+    🚫 QUARANTINE / ❌ REJECT
+    Reason: Low-trust source plus contradiction or dangerous content
 
   ⚡ Attack 3: Plausible misinformation via email
-    🚫 QUARANTINE
-    Score:  0.15
+    🚫 QUARANTINE / ❌ REJECT
     Reason: Contradicts verified memory
 
 PHASE 4: Querying verified memory
@@ -145,9 +157,9 @@ PHASE 4: Querying verified memory
   with a minimum cost factor of 12...
 
 PHASE 5: Audit Summary
-  Attacks blocked: 3 / 3
+  Attacks blocked: N / 3
 
-  ✅ Mithril protected Cognee from all poisoning attacks.`}
+  Graph saved → artifacts/mithril_graph.html`}
           />
         </section>
 

@@ -9,8 +9,8 @@ const GUIDES = [
     icon: Zap,
     title: "MCP Server",
     href: "/docs/mcp-server",
-    description:
-      "Expose Mithril over the Model Context Protocol. Claude Desktop, Cursor, and any MCP-aware agent writes memory through Mithril automatically.",
+	    description:
+	      "Expose Mithril over the Model Context Protocol. Claude Desktop, Cursor, and any MCP-aware agent can write memory through Mithril automatically.",
     accent: "border-brand-500/30 hover:border-brand-500/50",
     glow: "from-brand-500/10 to-transparent",
     iconTheme: "group-hover:border-brand-500/40 group-hover:bg-brand-500/10 group-hover:text-brand-400",
@@ -53,8 +53,8 @@ const GUIDES = [
     icon: Rocket,
     title: "Run Demo",
     href: "/docs/run-demo",
-    description:
-      "End-to-end attack simulation. Seeds legitimate policies, fires off poison attacks, and shows how Mithril blocks every one with a full audit trail.",
+	    description:
+	      "End-to-end attack simulation. Seeds legitimate policies, fires off poison attacks, and shows each admission decision with a full audit trail.",
     accent: "border-brand-500/30 hover:border-brand-500/50",
     glow: "from-brand-500/10 to-transparent",
     iconTheme: "group-hover:border-brand-500/40 group-hover:bg-brand-500/10 group-hover:text-brand-400",
@@ -254,16 +254,22 @@ export default function DocsIndexPage() {
 └─────────────────────────────────────────────────────────┘
      │
      ▼
-┌─────────────────────────────────────────────────────────┐
-│  Contradiction Detection (cognee.recall + LLM scoring)  │
-│  contradiction × -0.40                                  │
-└─────────────────────────────────────────────────────────┘
-     │
-     ▼
-┌─────────────────────────────────────────────────────────┐
-│  Trust Score = normalize(src + corroboration + fresh     │
-│               - contradiction)                          │
-└─────────────────────────────────────────────────────────┘
+	┌─────────────────────────────────────────────────────────┐
+	│  Contradiction Detection (cognee.recall + LLM scoring)  │
+	│  contradiction × -0.40 · corroboration × 0.25           │
+	└─────────────────────────────────────────────────────────┘
+	     │
+	     ▼
+	┌─────────────────────────────────────────────────────────┐
+	│  Content Danger Check (LLM scoring, no memory needed)   │
+	│  dangerous content × -0.35                              │
+	└─────────────────────────────────────────────────────────┘
+	     │
+	     ▼
+	┌─────────────────────────────────────────────────────────┐
+	│  Trust Score = normalize(src + corroboration + fresh     │
+	│               - contradiction - content danger)          │
+	└─────────────────────────────────────────────────────────┘
      │
      ▼
 ┌─────────────────────────────────────────────────────────┐

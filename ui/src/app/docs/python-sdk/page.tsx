@@ -30,32 +30,39 @@ export default function PythonSdkPage() {
           <CodeBlock
             language="python"
             filename="example.py"
-            code={`from mithril import Mithril
+            code={`import asyncio
 
-firewall = Mithril()
-await firewall.setup()
+from mithril import Mithril
 
-# Submit a memory claim through the trust gate
-result = await firewall.remember(
-    text="Passwords must be hashed using Argon2id",
-    source="Security Policy",
-    author="policy_admin",
-)
 
-print(result.status)                     # AdmissionStatus.ACCEPT
-print(result.trust_breakdown.final_score)  # 0.91
-print(result.decision_reason)            # "Score 0.91 meets acceptance..."
-print(result.trust_breakdown.reasons)    # Explainable breakdown list
+async def main():
+    firewall = Mithril()
+    await firewall.setup()
 
-# Query verified memory only
-answer = await firewall.recall("How should we hash passwords?")
-print(answer)  # "Passwords must be hashed using Argon2id..."
+    # Submit a memory claim through the trust gate
+    result = await firewall.remember(
+        text="Passwords must be hashed using Argon2id",
+        source="Security Policy",
+        author="policy_admin",
+    )
 
-# Query with metadata (candidates count, blocked count)
-result = await firewall.recall_with_metadata("How should we hash passwords?")
-print(result.answer)
-print(result.candidate_count)  # 3
-print(result.blocked_count)    # 2`}
+    print(result.status)                       # AdmissionStatus.WARN or ACCEPT
+    print(result.trust_breakdown.final_score)  # normalized 0-1 trust score
+    print(result.decision_reason)              # human-readable gate decision
+    print(result.trust_breakdown.reasons)      # explainable breakdown list
+
+    # Query verified memory only
+    answer = await firewall.recall("How should we hash passwords?")
+    print(answer)
+
+    # Query with metadata (candidates count, blocked count)
+    recall = await firewall.recall_with_metadata("How should we hash passwords?")
+    print(recall.answer)
+    print(recall.candidate_count)
+    print(recall.blocked_count)
+
+
+asyncio.run(main())`}
           />
         </section>
 
@@ -80,8 +87,14 @@ uv pip install -e ".[dev]"
                 your LLM API key (needed for contradiction detection):
               </p>
               <CodeBlock
-                code={`cp .env.example .env
-# Set LLM_API_KEY, LLM_ENDPOINT, LLM_MODEL in .env`}
+                code={`# macOS / Linux / WSL
+cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
+
+# Set LLM_API_KEY, LLM_ENDPOINT, and LLM_MODEL in .env.
+# The optional MITHRIL_LLM_MODEL overrides LLM_MODEL for Mithril's own LLM calls.`}
                 filename="terminal"
               />
             </StepCard>
@@ -302,6 +315,7 @@ await firewall.setup()`}
                 <p><code>.contradiction_penalty</code> — 0–1 LLM score</p>
                 <p><code>.corroboration_bonus</code> — 0–0.3</p>
                 <p><code>.freshness_bonus</code> — 0–0.05</p>
+                <p><code>.content_danger_penalty</code> — 0–1 LLM score</p>
                 <p><code>.reasons</code> — explainable breakdown list</p>
               </div>
             </InfoCard>

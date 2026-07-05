@@ -55,16 +55,18 @@ export default function ArchitecturePage() {
 │  3. Contradiction Detection  (memory_analysis.py)            │
 │     cognee.recall(only_context=True) pulls verified context. │
 │     LLM scores contradiction 0.0 → 1.0 (<score> tags).      │
-│     Threshold: 0.3 = contradiction found.                    │
+│     Threshold: score > 0.3 = contradiction found.            │
 │     Corroboration: extra aligned chunks = bonus (max 3).     │
-│     Weight: contradiction × -0.40, corroboration × 0.30      │
+│     Also scores standalone content danger before admission.   │
+│     Weights: contradiction × -0.40, corroboration × 0.25     │
+│              content_danger × -0.35                          │
 └──────────────────────────────────────────────────────────────┘
      │
      ▼
 ┌──────────────────────────────────────────────────────────────┐
 │  4. Trust Scorer  (scorer.py)                                │
-│     raw = src×0.40 + corroboration×0.30 + freshness×0.10    │
-│           - contradiction×0.40                               │
+│     raw = src×0.40 + corroboration×0.25 + freshness×0.05    │
+│           - contradiction×0.40 - content_danger×0.35         │
 │     final_score = raw / max_theoretical_score                │
 │     Normalized to [0, 1] so thresholds apply cleanly.        │
 └──────────────────────────────────────────────────────────────┘
@@ -91,7 +93,7 @@ export default function ArchitecturePage() {
             Trust Score Formula
           </h2>
           <p className="mb-4 text-sm text-zinc-400">
-            The trust score is a weighted sum of four independent signals, then
+            The trust score is a weighted sum of five independent signals, then
             normalized to [0, 1]:
           </p>
 
@@ -99,9 +101,10 @@ export default function ArchitecturePage() {
             language="text"
             filename="scorer.py — weighted formula"
             code={`raw = source_reputation × 0.40
-    + corroboration    × 0.30
-    + freshness        × 0.10
+    + corroboration    × 0.25
+    + freshness        × 0.05
     - contradiction    × 0.40
+    - content_danger   × 0.35
 
 final_score = clamp(raw / max_theoretical_score, 0, 1)`}
           />
@@ -113,12 +116,13 @@ final_score = clamp(raw / max_theoretical_score, 0, 1)`}
               = 0.60). Adjusts with every decision via bounded EWMA. Penalty
               rate (0.22) is 2× the reward rate (0.10) — trust is asymmetric.
             </InfoCard>
-            <InfoCard icon="🤝" title="Corroboration (×0.30)">
+            <InfoCard icon="🤝" title="Corroboration (×0.25)">
               When Cognee retrieves multiple aligned verified chunks for a claim,
               each extra chunk (beyond the first) counts as independent
-              corroboration. Capped at 3 chunks × 0.1 = max 0.30 bonus.
+              corroboration. Capped at 3 chunks x 0.1 = max 0.30 raw bonus,
+              then weighted by 0.25 in the final score.
             </InfoCard>
-            <InfoCard icon="⏱️" title="Freshness (×0.10)">
+            <InfoCard icon="⏱️" title="Freshness (×0.05)">
               Newer claims get a small bonus. Decays linearly from 0.05 to 0
               over 90 days. Recent policy updates are slightly favored over stale
               facts.
@@ -128,6 +132,12 @@ final_score = clamp(raw / max_theoretical_score, 0, 1)`}
               contradiction score exceeds 0.3, the claim is flagged. The penalty
               weight is equal to source reputation — a single contradiction can
               wipe out even a high-trust source&apos;s advantage.
+            </InfoCard>
+            <InfoCard icon="🚧" title="Content Danger (×-0.35)">
+              The same analysis pass asks the configured LLM whether the claim is
+              inherently dangerous, even when no verified memory exists yet.
+              Scores above 0.5 are penalized as security anti-patterns or
+              malicious instructions.
             </InfoCard>
           </div>
         </section>
@@ -357,7 +367,7 @@ new_rep = clamp(current + 0.22 × (0.0 - current))
   ├── gate.py           Admission gate (score → status)
   ├── reputation.py     Adaptive source reputation (SQLite EWMA)
   ├── memory_analysis.py  Contradiction detection + corroboration
-  ├── secrets.py        Credential exfiltration guard (12 patterns)
+  ├── secrets.py        Credential exfiltration guard (11 patterns)
   ├── ingest.py         Slack export / file ingestion connectors
   ├── audit.py          SQLite audit log
   ├── quarantine.py     SQLite quarantine store
