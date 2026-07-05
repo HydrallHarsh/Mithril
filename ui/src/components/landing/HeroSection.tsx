@@ -63,7 +63,7 @@ export function HeroSection() {
               href="/demo"
               className="inline-flex items-center gap-2 rounded-lg bg-brand-400 px-7 py-3.5 text-lg font-semibold text-zinc-950 shadow-lg shadow-brand-500/20 transition-colors hover:bg-brand-300"
             >
-              Try judge demo
+              Try demo
               <span aria-hidden>→</span>
             </Link>
           </motion.div>
