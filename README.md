@@ -1,7 +1,13 @@
 # Mithril
 
+[![PyPI](https://img.shields.io/pypi/v/mithril-cognee?label=PyPI)](https://pypi.org/project/mithril-cognee/)
+[![Python](https://img.shields.io/pypi/pyversions/mithril-cognee)](https://pypi.org/project/mithril-cognee/)
+[![Release](https://github.com/HydrallHarsh/Mithril/actions/workflows/publish-python.yml/badge.svg?branch=main)](https://github.com/HydrallHarsh/Mithril/actions/workflows/publish-python.yml)
+
 > A trust and governance layer for Cognee memory.  
 > Every AI can remember. **Mithril** decides what *deserves* to be remembered.
+
+> Available as a published Python package on PyPI, with the MCP server installable and runnable locally in a single command.
 
 ## The Problem
 
@@ -87,6 +93,7 @@ Install from PyPI once published:
 
 ```bash
 pip install mithril-cognee
+mithril-mcp
 ```
 
 Local development from this repo:
@@ -113,6 +120,15 @@ mithril-mcp       # local MCP server over stdio
 mithril-mcp-http  # remote MCP server over Streamable HTTP at /mcp
 mithril-api       # FastAPI backend
 ```
+
+That means the core demo path is now:
+
+```bash
+pip install mithril-cognee
+mithril-mcp
+```
+
+No cloning required for editor usage.
 
 ### Use Mithril from Claude Desktop (MCP)
 
