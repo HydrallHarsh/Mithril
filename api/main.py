@@ -7,15 +7,10 @@ REST API for the Mithril provenance dashboard.
 from __future__ import annotations
 
 import os
-import sys
-
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-load_dotenv()
 
 from mithril.config import SOURCE_OPTIONS, SOURCE_REPUTATION, THRESHOLDS, WEIGHTS
 from mithril.firewall import Mithril
@@ -25,6 +20,8 @@ from mithril.serialization import (
     recall_result_to_dict,
     stats_to_dict,
 )
+
+load_dotenv()
 
 app = FastAPI(
     title="Mithril",
@@ -123,3 +120,12 @@ async def get_config():
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "mithril"}
+
+
+def main() -> None:
+    """Run the API server from the installed `mithril-api` command."""
+    import uvicorn
+
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("api.main:app", host=host, port=port)

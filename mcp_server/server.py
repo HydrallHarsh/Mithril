@@ -27,19 +27,30 @@ Register in Claude Desktop (claude_desktop_config.json):
 from __future__ import annotations
 
 import os
-import sys
+from mcp.server.fastmcp import FastMCP
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from mithril.firewall import Mithril
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from mcp.server.fastmcp import FastMCP
 
-from mithril.firewall import Mithril
+def _int_env(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if not value:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
 
-mcp = FastMCP("mithril")
+
+mcp = FastMCP(
+    "mithril",
+    host=os.getenv("FASTMCP_HOST", "127.0.0.1"),
+    port=_int_env("FASTMCP_PORT", _int_env("PORT", 8000)),
+)
 
 _firewall = Mithril()
 _ready = False
@@ -159,7 +170,12 @@ async def mithril_source_reputation() -> str:
 
 def main() -> None:
     """Run the MCP server over stdio (the transport Claude Desktop uses)."""
-    mcp.run()
+    mcp.run(transport="stdio")
+
+
+def main_http() -> None:
+    """Run the MCP server over Streamable HTTP for remote deployments."""
+    mcp.run(transport="streamable-http")
 
 
 if __name__ == "__main__":

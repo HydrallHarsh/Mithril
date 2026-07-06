@@ -1,5 +1,5 @@
 [project]
-name = "mithril"
+name = "mithril-cognee"
 version = "0.1.0"
 description = "Mithril — trust and governance layer for Cognee memory"
 readme = "README.md"
@@ -13,14 +13,25 @@ dependencies = [
     "openai>=1.0.0",
     "mcp>=1.2.0",
     "fastembed>=0.3.0",
-    "pytest>=9.1.1",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
+    "build>=1.2.0",
+    "twine>=5.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/HydrallHarsh/Mithril"
+Repository = "https://github.com/HydrallHarsh/Mithril"
+Issues = "https://github.com/HydrallHarsh/Mithril/issues"
+
+[project.scripts]
+mithril-api = "api.main:main"
+mithril-mcp = "mcp_server.server:main"
+mithril-mcp-http = "mcp_server.server:main_http"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -31,5 +42,16 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["mithril"]
+packages = ["mithril", "mcp_server", "api"]
 
+[tool.hatch.build]
+exclude = [
+    ".venv/**",
+    ".venv-linux/**",
+    ".pytest_cache/**",
+    ".vscode/**",
+    "dist/**",
+    "ui/.next/**",
+    "ui/node_modules/**",
+    "**/__pycache__/**",
+]

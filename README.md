@@ -83,6 +83,14 @@ Admission Gate (Accept / Warn / Review / Quarantine / Reject)
 
 ## Quickstart
 
+Install from PyPI once published:
+
+```bash
+pip install mithril-cognee
+```
+
+Local development from this repo:
+
 ```bash
 uv venv && .venv\Scripts\activate
 uv pip install -e ".[dev]"
@@ -98,6 +106,14 @@ make ui-install && make ui   # landing → http://localhost:3001 · dashboard �
 make dev     # start API + UI together
 ```
 
+Installed commands:
+
+```bash
+mithril-mcp       # local MCP server over stdio
+mithril-mcp-http  # remote MCP server over Streamable HTTP at /mcp
+mithril-api       # FastAPI backend
+```
+
 ### Use Mithril from Claude Desktop (MCP)
 
 Add to `claude_desktop_config.json`, then restart Claude Desktop:
@@ -106,15 +122,43 @@ Add to `claude_desktop_config.json`, then restart Claude Desktop:
 {
   "mcpServers": {
     "mithril": {
-      "command": "python",
-      "args": ["-m", "mcp_server.server"],
-      "cwd": "/absolute/path/to/hack-ideas2"
+      "command": "mithril-mcp"
     }
   }
 }
 ```
 
 The agent then gets `mithril_remember`, `mithril_recall`, `mithril_quarantine_list`, and `mithril_source_reputation` — every memory write is gated, every recall is verified-only.
+
+### Free deployment notes
+
+For the public dashboard, deploy `ui/` to Vercel and set:
+
+```bash
+NEXT_PUBLIC_BACKEND_URL=https://your-render-api.onrender.com
+```
+
+For the API on Render Free:
+
+```bash
+pip install -e .
+mithril-api
+```
+
+For a demo remote MCP server on Render Free:
+
+```bash
+pip install -e .
+FASTMCP_HOST=0.0.0.0 FASTMCP_PORT=$PORT mithril-mcp-http
+```
+
+The remote MCP endpoint will be:
+
+```text
+https://your-render-service.onrender.com/mcp
+```
+
+Free Render services can sleep and do not keep local SQLite files permanently, so use local MCP for real editor usage unless you add hosted storage and auth.
 
 ## Benchmark — does it actually stop poisoning?
 
