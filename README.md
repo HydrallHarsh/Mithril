@@ -9,6 +9,12 @@
 
 > Available as a published Python package on PyPI, with the MCP server installable and runnable locally in a single command.
 
+## What's New in 0.2.0
+
+- **Service Stability**: Implemented a sliding-window LLM rate limiter and an API key rotation pool. This ensures the hosted demo handles traffic gracefully and automatically fails over when the shared free-tier Gemini API hits quota limits.
+- **Deployment Fixes**: Resolved `sqlite3.OperationalError` issues when deploying to read-only environments (like Render or Vercel). Cognee is now properly configured to store its databases inside a writable local workspace directory (`.cognee_system`).
+- **Enhanced Endpoints**: Implemented a robust `/api/demo` route to seamlessly serve verified facts and rate-limit states to the UI, while enhancing the recall and remember endpoints for better provenance tracking.
+
 ## The Problem
 
 AI agents with persistent memory are vulnerable to **memory poisoning** — where a single malicious message permanently corrupts the knowledge graph that all future agents rely on.
