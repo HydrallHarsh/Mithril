@@ -1,3 +1,11 @@
+import os
+import cognee
+
+# Set Cognee to store its data in the local workspace (.cognee_system) instead of
+# the global site-packages directory. This is critical for deployment platforms
+# (Render, Vercel) where site-packages is read-only, avoiding sqlite3 OperationalErrors.
+cognee.config.system_root_directory(os.path.abspath(".cognee_system"))
+
 from .firewall import Mithril
 from .ingest import (
     ParsedMessage,
