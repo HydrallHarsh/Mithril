@@ -119,6 +119,143 @@ class SlidingWindowLimiter:
 _LIMITERS: dict[str, SlidingWindowLimiter] = {}
 
 
+class NoKeyAvailable(RateLimitedError):
+    """Raised by :class:`KeyPool` when every key is out of budget / cooling."""
+
+
+class KeyPool:
+    """A pool of API keys, each with its own budget and cooldown.
+
+    Rotation only raises the effective ceiling when the keys belong to
+    *different* provider projects (Gemini enforces quota per project, not per
+    key). Each key gets an independent :class:`SlidingWindowLimiter` plus a
+    ``cooldown_until`` clock that a provider-side 429 can set.
+
+    Usage::
+
+        key = await pool.acquire()          # first key with budget, or raises
+        try:
+            ... call provider with key ...
+        except ProviderRateLimit as e:
+            pool.mark_rate_limited(key, e.retry_after)   # cool it, try next
+    """
+
+    def __init__(
+        self,
+        keys: list[str],
+        rpm: int,
+        interval: float,
+        *,
+        clock=time.monotonic,
+    ) -> None:
+        # De-dupe while preserving order; drop blanks.
+        seen: dict[str, None] = {}
+        for k in keys:
+            k = (k or "").strip()
+            if k and k not in seen:
+                seen[k] = None
+        self._keys: list[str] = list(seen) or [""]
+        self._clock = clock
+        self._limiters: dict[str, SlidingWindowLimiter] = {
+            k: SlidingWindowLimiter(rpm, interval, clock=clock) for k in self._keys
+        }
+        self._cooldown_until: dict[str, float] = {k: 0.0 for k in self._keys}
+        self._lock = asyncio.Lock()
+        self._cursor = 0
+
+    @property
+    def size(self) -> int:
+        return len(self._keys)
+
+    def _key_wait(self, key: str, now: float) -> float:
+        """Seconds until ``key`` could serve a request (0 = available now)."""
+        cool = max(0.0, self._cooldown_until[key] - now)
+        snap = self._limiters[key].snapshot()
+        budget_wait = snap["reset_after"] if snap["remaining"] == 0 else 0.0
+        return max(cool, budget_wait)
+
+    async def acquire(self) -> str:
+        """Reserve a slot on the first available key (round-robin start).
+
+        Raises :class:`NoKeyAvailable` with the *shortest* wait if every key is
+        cooling or out of budget.
+        """
+        async with self._lock:
+            now = self._clock()
+            n = len(self._keys)
+            # Start from the rotating cursor for even spread across keys.
+            for offset in range(n):
+                key = self._keys[(self._cursor + offset) % n]
+                if self._cooldown_until[key] > now:
+                    continue
+                ok, _ = await self._limiters[key].try_acquire()
+                if ok:
+                    self._cursor = (self._cursor + offset + 1) % n
+                    return key
+            # Nobody free — report the soonest recovery across all keys.
+            soonest = min(self._key_wait(k, now) for k in self._keys)
+            raise NoKeyAvailable(soonest)
+
+    def mark_rate_limited(self, key: str, retry_after: float) -> None:
+        """Cool a key after the provider signalled throttling."""
+        if key in self._cooldown_until:
+            wait = max(1.0, float(retry_after or 1.0))
+            self._cooldown_until[key] = self._clock() + wait
+
+    def snapshot(self) -> dict:
+        """Aggregate budget across keys, plus per-key detail."""
+        now = self._clock()
+        per_key = []
+        total_remaining = 0
+        total_limit = 0
+        for i, key in enumerate(self._keys):
+            snap = self._limiters[key].snapshot()
+            cooling = max(0.0, self._cooldown_until[key] - now)
+            available = cooling == 0.0 and snap["remaining"] > 0
+            total_limit += snap["limit"]
+            if cooling == 0.0:
+                total_remaining += snap["remaining"]
+            per_key.append(
+                {
+                    "index": i,
+                    "remaining": snap["remaining"],
+                    "cooling_for": round(cooling, 2),
+                    "available": available,
+                }
+            )
+        soonest = min(self._key_wait(k, now) for k in self._keys)
+        return {
+            "keys": len(self._keys),
+            "limit": total_limit,
+            "remaining": total_remaining,
+            "reset_after": round(soonest if total_remaining == 0 else 0.0, 2),
+            "interval_seconds": self._limiters[self._keys[0]].interval,
+            "per_key": per_key,
+        }
+
+
+_KEY_POOL: KeyPool | None = None
+
+
+def _load_keys() -> list[str]:
+    """Read the key pool from env: LLM_API_KEYS (csv) or LLM_API_KEY."""
+    raw = os.getenv("LLM_API_KEYS", "").strip()
+    if raw:
+        return [k.strip() for k in raw.split(",") if k.strip()]
+    single = os.getenv("LLM_API_KEY", "").strip()
+    return [single] if single else [""]
+
+
+def get_key_pool() -> KeyPool:
+    """Process-wide singleton key pool for LLM calls."""
+    global _KEY_POOL
+    if _KEY_POOL is None:
+        rpm = int(os.getenv("MITHRIL_LLM_RPM", "5") or "5")
+        interval = float(os.getenv("MITHRIL_LLM_INTERVAL_SECONDS", "60") or "60")
+        _KEY_POOL = KeyPool(_load_keys(), rpm, interval)
+    return _KEY_POOL
+
+
 def get_llm_limiter() -> SlidingWindowLimiter:
     """Return the process-wide singleton limiter for LLM calls.
 
@@ -136,5 +273,7 @@ def get_llm_limiter() -> SlidingWindowLimiter:
 
 
 def reset_limiters() -> None:
-    """Drop cached limiters (used by tests to pick up new env / clocks)."""
+    """Drop cached limiters/key pool (tests use this to pick up new env)."""
+    global _KEY_POOL
     _LIMITERS.clear()
+    _KEY_POOL = None

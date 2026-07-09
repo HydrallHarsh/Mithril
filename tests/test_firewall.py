@@ -14,8 +14,10 @@ from mithril.models import AdmissionStatus, ContradictionResult
 def firewall(tmp_path, monkeypatch):
     q_db = tmp_path / "q.db"
     a_db = tmp_path / "a.db"
+    r_db = tmp_path / "r.db"
     monkeypatch.setattr("mithril.quarantine.DB_PATH", str(q_db))
     monkeypatch.setattr("mithril.audit.DB_PATH", str(a_db))
+    monkeypatch.setattr("mithril.reputation.DB_PATH", str(r_db))
     return Mithril()
 
 

@@ -18,7 +18,7 @@ import cognee
 
 from .config import COGNEE_VERIFIED_DATASET
 from .models import ContradictionResult
-from .ratelimit import RateLimitedError, get_llm_limiter
+from .ratelimit import RateLimitedError, get_key_pool
 from .utils import extract_recall_texts
 
 logger = logging.getLogger(__name__)
@@ -88,16 +88,14 @@ def _count_corroboration(
     return min(max(len(context_parts) - 1, 0), 3)
 
 
-def _get_llm_client_and_model():
-    """Shared helper: build AsyncOpenAI client and resolve model name.
+def _resolve_endpoint_and_model() -> tuple[str, str]:
+    """Resolve the base URL and bare model id (no API key involved).
 
     Works with any OpenAI-compatible gateway. For Google Gemini (either
     ``LLM_PROVIDER=gemini`` or a ``gemini/…`` model id) we default the base URL
     to Gemini's OpenAI-compatible endpoint when ``LLM_ENDPOINT`` isn't set, and
     strip the ``gemini/`` prefix so the bare model id is sent.
     """
-    from openai import AsyncOpenAI
-
     provider = os.getenv("LLM_PROVIDER", "").strip().lower()
     model = os.getenv("MITHRIL_LLM_MODEL") or os.getenv(
         "LLM_MODEL", "claude-sonnet-4-5-20250929"
@@ -114,73 +112,97 @@ def _get_llm_client_and_model():
         if is_gemini
         else "https://agentrouter.org/v1"
     )
-    client = AsyncOpenAI(
-        base_url=os.getenv("LLM_ENDPOINT") or default_endpoint,
-        api_key=os.getenv("LLM_API_KEY", ""),
+    endpoint = os.getenv("LLM_ENDPOINT") or default_endpoint
+    return endpoint, model
+
+
+def _build_client(api_key: str):
+    """Build an AsyncOpenAI client for a specific key (no internal retries).
+
+    ``max_retries=0`` so a rate-limited key fails fast and we can fail over to
+    the next key in the pool ourselves, rather than the SDK backing off on a key
+    we already know is throttled.
+    """
+    from openai import AsyncOpenAI
+
+    endpoint, _ = _resolve_endpoint_and_model()
+    return AsyncOpenAI(base_url=endpoint, api_key=api_key, max_retries=0)
+
+
+def _get_llm_client_and_model(api_key: str | None = None):
+    """Back-compat helper: build a client + resolve model for a single key."""
+    endpoint, model = _resolve_endpoint_and_model()
+    return _build_client(api_key if api_key is not None else os.getenv("LLM_API_KEY", "")), model
+
+
+def _is_rate_limit_error(message: str) -> bool:
+    return any(
+        token in message
+        for token in ("rate limit", "rate_limit", "quota", "too many requests", "429", "resource_exhausted")
     )
-    return client, model
+
+
+def _parse_score(raw: str, fallback: float) -> float:
+    match = re.search(r"<score>\s*(\d+\.?\d*)\s*</score>", raw)
+    if match:
+        return max(0.0, min(1.0, float(match.group(1))))
+    matches = re.findall(r"(\d+\.\d+)", raw)
+    if matches:
+        return max(0.0, min(1.0, float(matches[-1])))
+    return fallback
 
 
 async def _llm_score(prompt: str, fallback: float = 0.0) -> float:
     """Send a scoring prompt to the LLM and extract a 0.0–1.0 score.
 
-    Consumes one slot from the shared LLM budget *before* calling the provider.
-    If the budget is exhausted this raises :class:`RateLimitedError` (so the API
-    can return HTTP 429) rather than degrading to the fallback score — a
-    rate-limited demo must be visibly rate-limited, not silently wrong.
+    Rotates across the API-key pool: reserves a slot on the first key with
+    budget, and on a provider-side rate-limit error cools that key and fails
+    over to the next. Only when *every* key is exhausted does this raise
+    :class:`RateLimitedError` (so the API returns HTTP 429 and the UI shows a
+    rate-limit banner) rather than silently degrading to the fallback score.
     """
-    # Reserve budget first; propagate exhaustion loudly.
-    await get_llm_limiter().acquire_or_raise()
-
-    client, model = _get_llm_client_and_model()
-    # Thinking models (e.g. gemini-*-flash) spend tokens on reasoning before
-    # emitting output, so give them headroom — configurable for tighter models.
+    endpoint, model = _resolve_endpoint_and_model()
     max_tokens = int(os.getenv("MITHRIL_LLM_MAX_TOKENS", "800") or "800")
-    try:
-        response = await client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            temperature=0.0,
-        )
-        content = response.choices[0].message.content
-        if not content:
-            # Thinking model ran out of output budget, or an empty completion.
-            logger.warning(
-                "LLM returned empty content (finish_reason=%s); using fallback",
-                getattr(response.choices[0], "finish_reason", "unknown"),
+    pool = get_key_pool()
+
+    # At most one real attempt per key; acquire() raises once all are cooling.
+    for _ in range(pool.size + 1):
+        key = await pool.acquire()  # NoKeyAvailable (→ RateLimitedError) propagates
+        client = _build_client(key)
+        try:
+            response = await client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=0.0,
             )
+            content = response.choices[0].message.content
+            if not content:
+                logger.warning(
+                    "LLM returned empty content (finish_reason=%s); using fallback",
+                    getattr(response.choices[0], "finish_reason", "unknown"),
+                )
+                return fallback
+            return _parse_score(content.strip(), fallback)
+        except RateLimitedError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            message = str(exc).lower()
+            if _is_rate_limit_error(message):
+                # This key is throttled — cool it and try the next one.
+                pool.mark_rate_limited(key, _get_provider_retry_after())
+                logger.info("Key rate-limited; failing over to next key.")
+                continue
+            logger.warning("LLM scoring failed: %s", exc)
             return fallback
-        raw = content.strip()
 
-        match = re.search(r"<score>\s*(\d+\.?\d*)\s*</score>", raw)
-        if match:
-            return max(0.0, min(1.0, float(match.group(1))))
-
-        # Fallback to the last floating point number if tags are missing
-        matches = re.findall(r"(\d+\.\d+)", raw)
-        if matches:
-            return max(0.0, min(1.0, float(matches[-1])))
-
-        return fallback
-    except RateLimitedError:
-        raise
-    except Exception as exc:
-        # A provider-side rate-limit/quota error should also surface as a 429,
-        # not a silent fallback — translate the common phrasings.
-        message = str(exc).lower()
-        if any(
-            token in message
-            for token in ("rate limit", "rate_limit", "quota", "too many requests", "429")
-        ):
-            raise RateLimitedError(retry_after=_get_provider_retry_after())
-        logger.warning("LLM scoring failed: %s", exc)
-        return fallback
+    # Every key was rate-limited during this call — surface as 429.
+    raise RateLimitedError(retry_after=_get_provider_retry_after())
 
 
 def _get_provider_retry_after() -> float:
     """Best-effort retry hint when the provider itself signals throttling."""
-    return get_llm_limiter().snapshot().get("reset_after", 30.0) or 30.0
+    return get_key_pool().snapshot().get("reset_after", 30.0) or 30.0
 
 
 async def _assess_contradiction(claim: str, context: str) -> float:

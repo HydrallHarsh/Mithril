@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field
 from mithril.config import SOURCE_OPTIONS, SOURCE_REPUTATION, THRESHOLDS, WEIGHTS
 from mithril.demo_data import BASELINE_POLICIES, SUGGESTED_CLAIMS
 from mithril.firewall import Mithril
-from mithril.ratelimit import RateLimitedError, get_llm_limiter
+from mithril.ratelimit import RateLimitedError, get_key_pool
 from mithril.scorer import MAX_THEORETICAL_SCORE
 from mithril.serialization import (
     admission_result_to_dict,
@@ -139,6 +139,14 @@ async def _seed_baseline_once() -> None:
 
 @app.on_event("startup")
 async def startup() -> None:
+    # Cognee's internal calls read a single LLM_API_KEY from the environment.
+    # When only the multi-key pool (LLM_API_KEYS) is configured, point Cognee at
+    # the first key so cognify/embedding still authenticate.
+    if not os.getenv("LLM_API_KEY"):
+        keys = os.getenv("LLM_API_KEYS", "").strip()
+        if keys:
+            os.environ["LLM_API_KEY"] = keys.split(",")[0].strip()
+
     await firewall.setup()
     if _demo_seed_enabled():
         # Fire-and-forget so startup doesn't block on ~3 gated LLM writes.
@@ -158,7 +166,7 @@ async def _rate_limited_handler(_request: Request, exc: RateLimitedError) -> JSO
                 "Please try again shortly."
             ),
             "retry_after": retry_after,
-            "rate_limit": get_llm_limiter().snapshot(),
+            "rate_limit": get_key_pool().snapshot(),
         },
     )
 
@@ -246,7 +254,7 @@ async def get_demo():
         ],
         "suggested_claims": SUGGESTED_CLAIMS,
         "source_options": SOURCE_OPTIONS,
-        "rate_limit": get_llm_limiter().snapshot(),
+        "rate_limit": get_key_pool().snapshot(),
     }
 
 
@@ -256,7 +264,7 @@ async def health():
         "status": "ok",
         "service": "mithril",
         "seed_state": seed_state,
-        "rate_limit": get_llm_limiter().snapshot(),
+        "rate_limit": get_key_pool().snapshot(),
     }
 
 

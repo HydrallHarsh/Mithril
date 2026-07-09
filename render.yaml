@@ -17,6 +17,10 @@ services:
         value: gemini/gemini-2.5-flash
       - key: LLM_API_KEY
         sync: false  # set your Google AI Studio key in the dashboard
+      # Optional multi-key rotation — only raises the ceiling if keys are from
+      # different Google projects. Set in the dashboard as a comma-separated list.
+      - key: LLM_API_KEYS
+        sync: false
       # Thinking-capable models need output headroom; 800 is a safe default.
       - key: MITHRIL_LLM_MAX_TOKENS
         value: "800"
