@@ -16,6 +16,7 @@ from .models import (
     TrustScoreBreakdown,
 )
 from .reputation import ReputationStore
+from .ratelimit import RateLimitedError, get_llm_limiter
 from .scorer import MAX_THEORETICAL_SCORE, compute_trust_score
 from .secrets import contains_secret, redact_secrets, scan as scan_secrets
 
@@ -31,6 +32,8 @@ __all__ = [
     "compute_trust_score",
     "MAX_THEORETICAL_SCORE",
     "ReputationStore",
+    "RateLimitedError",
+    "get_llm_limiter",
     "ParsedMessage",
     "load_slack_export",
     "load_generic_file",

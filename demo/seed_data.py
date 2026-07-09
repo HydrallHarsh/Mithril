@@ -19,28 +19,25 @@ RESET = "\033[0m"
 BOLD  = "\033[1m"
 
 
-LEGITIMATE_POLICIES = [
-    ("Passwords must be hashed using Argon2id algorithm.", "Security Policy"),
-    ("Argon2id requires minimum cost factor of 12.", "Security Policy"),
-    ("bcrypt is acceptable as a fallback hashing algorithm.", "Official Docs"),
-]
+LEGITIMATE_POLICIES = None  # loaded from the shared package source below
 
 
 async def seed():
     from mithril.firewall import Mithril
+    from mithril.demo_data import BASELINE_POLICIES
 
     firewall = Mithril()
     await firewall.setup()
 
     print(f"\n{BOLD}Seeding legitimate security policies...{RESET}\n")
 
-    for text, source in LEGITIMATE_POLICIES:
+    for text, source in BASELINE_POLICIES:
         result = await firewall.remember(text=text, source=source, author="seed_script")
         score = result.trust_breakdown.final_score
         status = result.status.value.upper()
         print(f"  {GREEN}✅ {status}{RESET}  (score: {score:.2f})  {text[:60]}")
 
-    print(f"\n{GREEN}{BOLD}Done — {len(LEGITIMATE_POLICIES)} policies seeded.{RESET}\n")
+    print(f"\n{GREEN}{BOLD}Done — {len(BASELINE_POLICIES)} policies seeded.{RESET}\n")
 
 
 if __name__ == "__main__":

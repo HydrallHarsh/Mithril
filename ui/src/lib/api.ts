@@ -4,13 +4,41 @@ import type {
   BenchmarkResults,
   ConnectionMode,
   DashboardStats,
+  DemoState,
+  RateLimitSnapshot,
   RecallResult,
   RememberResult,
   ReputationEntry,
 } from "@/types";
 
+/** Thrown when the backend returns HTTP 429 (shared LLM budget exhausted). */
+export class RateLimitError extends Error {
+  readonly retryAfter: number;
+  readonly rateLimit?: RateLimitSnapshot;
+
+  constructor(message: string, retryAfter: number, rateLimit?: RateLimitSnapshot) {
+    super(message);
+    this.name = "RateLimitError";
+    this.retryAfter = retryAfter;
+    this.rateLimit = rateLimit;
+  }
+}
+
 async function readJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { cache: "no-store", ...init });
+  if (res.status === 429) {
+    let payload: { detail?: string; retry_after?: number; rate_limit?: RateLimitSnapshot } = {};
+    try {
+      payload = await res.json();
+    } catch {
+      // ignore — fall back to defaults below
+    }
+    throw new RateLimitError(
+      payload.detail ?? "Rate limited — please retry shortly.",
+      typeof payload.retry_after === "number" ? payload.retry_after : 30,
+      payload.rate_limit,
+    );
+  }
   if (!res.ok) {
     const body = await res.text();
     throw new Error(body || `Request failed: ${res.status}`);
@@ -47,6 +75,10 @@ export async function fetchReputation(): Promise<ReputationEntry[]> {
 
 export async function fetchBenchmarkResults(): Promise<BenchmarkResults> {
   return readJson<BenchmarkResults>("/api/benchmark-results");
+}
+
+export async function fetchDemo(): Promise<DemoState> {
+  return readJson<DemoState>("/api/demo");
 }
 
 export async function submitRemember(body: {

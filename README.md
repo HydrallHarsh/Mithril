@@ -148,17 +148,38 @@ The agent then gets `mithril_remember`, `mithril_recall`, `mithril_quarantine_li
 
 ### Free deployment notes
 
-For the public dashboard, deploy `ui/` to Vercel and set:
+The public "try demo" is built to run on a single shared **Google Gemini free-tier key**
+(~5 req/min). Two things keep it inside that budget:
 
-```bash
-NEXT_PUBLIC_BACKEND_URL=https://your-render-api.onrender.com
-```
+- the backend **seeds the verified-memory baseline once at startup** (`MITHRIL_DEMO_SEED=true`),
+  so visitors spend budget only on the single claim they submit, and
+- an app-level limiter (`MITHRIL_LLM_RPM`) guards Mithril's own scoring calls and returns
+  **HTTP 429** with a `retry_after` when the shared budget is exhausted — which the dashboard
+  surfaces as a clear "rate-limited, retry in Ns" banner.
 
-For the API on Render Free:
+For the API on Render Free (a `render.yaml` blueprint is included):
 
 ```bash
 pip install -e .
 mithril-api
+```
+
+Key env vars (see `.env.example`):
+
+```bash
+LLM_ENDPOINT=https://generativelanguage.googleapis.com/v1beta/openai/
+LLM_MODEL=gemini-2.0-flash            # pick your Gemini model
+LLM_API_KEY=<google-ai-studio-key>
+MITHRIL_LLM_RPM=4                     # keep below the real Gemini limit
+MITHRIL_DEMO_SEED=true                # seed baseline once at startup
+CORS_ORIGINS=https://your-frontend.vercel.app
+```
+
+For the public dashboard, deploy `ui/` to Vercel and set:
+
+```bash
+NEXT_PUBLIC_BACKEND_URL=https://your-render-api.onrender.com
+BACKEND_URL=https://your-render-api.onrender.com
 ```
 
 For a demo remote MCP server on Render Free:
@@ -232,6 +253,7 @@ answer = await firewall.recall("How should we hash passwords?")
 | POST | `/api/recall` | Query verified memory |
 | POST | `/api/reset` | Clear Cognee + local stores |
 | GET | `/api/config` | Sources, weights, thresholds |
+| GET | `/api/demo` | Verified facts, suggested claims, seed + rate-limit state |
 
 ## Trust Score Formula
 

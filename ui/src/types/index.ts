@@ -77,6 +77,36 @@ export interface RecallResult {
 
 export type ConnectionMode = "live" | "mock";
 
+export interface RateLimitSnapshot {
+  limit: number;
+  remaining: number;
+  reset_after: number;
+  interval_seconds: number;
+}
+
+export type SeedState = "idle" | "warming" | "ready" | "error";
+
+export interface VerifiedFact {
+  text: string;
+  source: string;
+}
+
+export interface SuggestedClaim {
+  label: string;
+  text: string;
+  source: string;
+  hint: string;
+}
+
+export interface DemoState {
+  seed_state: SeedState;
+  seed_enabled: boolean;
+  verified_facts: VerifiedFact[];
+  suggested_claims: SuggestedClaim[];
+  source_options: string[];
+  rate_limit: RateLimitSnapshot;
+}
+
 export interface ReputationEntry {
   source: string;
   reputation: number;

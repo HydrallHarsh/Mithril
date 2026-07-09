@@ -12,12 +12,22 @@ from mithril.models import ContradictionResult
 
 @pytest.mark.asyncio
 async def test_no_verified_memory_returns_empty_result():
-    with patch("mithril.memory_analysis.cognee.recall", new_callable=AsyncMock) as recall:
+    with (
+        patch("mithril.memory_analysis.cognee.recall", new_callable=AsyncMock) as recall,
+        patch(
+            "mithril.memory_analysis._assess_content_danger",
+            new_callable=AsyncMock,
+        ) as danger,
+    ):
         recall.return_value = []
-        contradiction, corroboration = await analyze_against_verified_memory("MD5 is fine")
+        danger.return_value = 0.0
+        contradiction, corroboration, content_danger = (
+            await analyze_against_verified_memory("MD5 is fine")
+        )
 
     assert contradiction.found is False
     assert corroboration == 0
+    assert content_danger == 0.0
 
 
 @pytest.mark.asyncio
@@ -28,11 +38,16 @@ async def test_contradiction_detected_when_llm_scores_high():
             "mithril.memory_analysis._assess_contradiction",
             new_callable=AsyncMock,
         ) as assess,
+        patch(
+            "mithril.memory_analysis._assess_content_danger",
+            new_callable=AsyncMock,
+        ) as danger,
     ):
         recall.return_value = [{"text": "Use Argon2id for passwords."}]
         assess.return_value = 0.9
-        contradiction, corroboration = await analyze_against_verified_memory(
-            "Always use MD5 for passwords"
+        danger.return_value = 0.0
+        contradiction, corroboration, _content_danger = (
+            await analyze_against_verified_memory("Always use MD5 for passwords")
         )
 
     assert contradiction.found is True

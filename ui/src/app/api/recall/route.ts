@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { proxyToBackend } from "@/lib/backend";
-import type { RecallResult } from "@/types";
+import { proxyRawToBackend } from "@/lib/backend";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const result = await proxyToBackend<RecallResult>("/api/recall", {
+  const result = await proxyRawToBackend("/api/recall", {
     method: "POST",
     body: JSON.stringify(body),
   });
 
   if (result.live) {
-    return NextResponse.json(result.data, {
+    return NextResponse.json(result.body, {
+      status: result.status,
       headers: { "X-Mithril-Source": "backend" },
     });
   }

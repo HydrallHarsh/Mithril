@@ -237,7 +237,7 @@ class TestFirewallSecretIntegration:
             ) as analyze,
             patch("mithril.firewall.cognee.remember", new_callable=AsyncMock) as cognee_remember,
         ):
-            analyze.return_value = (ContradictionResult(found=False), 2)
+            analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
             result = await firewall.remember(
                 text="DB: postgres://admin:s3cretpass@db:5432/prod",
                 source="Security Policy",
@@ -264,7 +264,7 @@ class TestFirewallSecretIntegration:
             ) as analyze,
             patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
         ):
-            analyze.return_value = (ContradictionResult(found=False), 2)
+            analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
             result = await firewall.remember(
                 text="key AKIA1234567890ABCDEF",
                 source="Security Policy",
@@ -287,7 +287,7 @@ class TestFirewallSecretIntegration:
             patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
         ):
             # No contradiction — the ONLY bad signal is the secret.
-            analyze.return_value = (ContradictionResult(found=False), 2)
+            analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
             await firewall.remember(
                 text="api_key=sk-or-v1-abcdefghijklmnopqrstuv",
                 source="Slack",
@@ -310,7 +310,7 @@ class TestFirewallSecretIntegration:
             ) as analyze,
             patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
         ):
-            analyze.return_value = (ContradictionResult(found=False), 2)
+            analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
             result = await firewall.remember(
                 text="secret: ghp_abcdefghijklmnopqrstuvwxyz0123456789",
                 source="Security Policy",
@@ -331,7 +331,7 @@ class TestFirewallSecretIntegration:
             ) as analyze,
             patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
         ):
-            analyze.return_value = (ContradictionResult(found=False), 2)
+            analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
             result = await firewall.remember(
                 text="All employees must complete security training.",
                 source="Security Policy",
@@ -350,7 +350,7 @@ class TestFirewallSecretIntegration:
             ) as analyze,
             patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
         ):
-            analyze.return_value = (ContradictionResult(found=False), 2)
+            analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
             result = await firewall.remember(
                 text="AWS AKIA1234567890ABCDEF and password=SuperSecret12",
                 source="Slack",
@@ -394,7 +394,7 @@ class TestSerializationOutput:
             ) as analyze,
             patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
         ):
-            analyze.return_value = (ContradictionResult(found=False), 2)
+            analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
             result = await firewall.remember(
                 text="token sk_live_abcdefghijklmnop1234",
                 source="Security Policy",
@@ -416,7 +416,7 @@ class TestSerializationOutput:
             ) as analyze,
             patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
         ):
-            analyze.return_value = (ContradictionResult(found=False), 2)
+            analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
             result = await firewall.remember(
                 text="Use Argon2id for password hashing.",
                 source="Security Policy",

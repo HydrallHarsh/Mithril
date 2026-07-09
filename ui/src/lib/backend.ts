@@ -31,3 +31,40 @@ export async function proxyToBackend<T>(
     };
   }
 }
+
+/**
+ * Like {@link proxyToBackend} but preserves the backend's HTTP status and JSON
+ * body when the response is a *handled* error (e.g. 429 rate-limited). Only a
+ * transport failure (backend unreachable) resolves to `live: false`.
+ */
+export async function proxyRawToBackend(
+  path: string,
+  init?: RequestInit,
+): Promise<
+  | { live: true; status: number; body: unknown }
+  | { live: false; error: Error }
+> {
+  try {
+    const res = await fetch(getBackendUrl(path), {
+      ...init,
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...init?.headers,
+      },
+    });
+
+    let body: unknown = null;
+    try {
+      body = await res.json();
+    } catch {
+      body = null;
+    }
+    return { live: true, status: res.status, body };
+  } catch (error) {
+    return {
+      live: false,
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
+  }
+}

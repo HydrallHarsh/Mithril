@@ -1,0 +1,45 @@
+# Render blueprint for the Mithril backend (hosted public demo).
+# Deploy: push to GitHub, then "New +" → "Blueprint" in the Render dashboard.
+# Set the secret values (marked sync: false) in the dashboard after the first deploy.
+services:
+  - type: web
+    name: mithril-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -e .
+    startCommand: mithril-api
+    healthCheckPath: /api/health
+    envVars:
+      # ── LLM: Google Gemini (OpenAI-compatible endpoint) ──
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: LLM_MODEL
+        value: gemini/gemini-2.5-flash
+      - key: LLM_API_KEY
+        sync: false  # set your Google AI Studio key in the dashboard
+      # Thinking-capable models need output headroom; 800 is a safe default.
+      - key: MITHRIL_LLM_MAX_TOKENS
+        value: "800"
+      # ── Embeddings: local, no key/quota ──
+      - key: EMBEDDING_PROVIDER
+        value: fastembed
+      - key: EMBEDDING_MODEL
+        value: BAAI/bge-small-en-v1.5
+      - key: EMBEDDING_DIMENSIONS
+        value: "384"
+      # ── Rate limiting: stay under the shared free-tier quota ──
+      - key: MITHRIL_LLM_RPM
+        value: "4"
+      - key: MITHRIL_LLM_INTERVAL_SECONDS
+        value: "60"
+      - key: LLM_RATE_LIMIT_ENABLED
+        value: "true"
+      - key: LLM_RATE_LIMIT_REQUESTS
+        value: "5"
+      - key: LLM_RATE_LIMIT_INTERVAL
+        value: "60"
+      # ── Public demo ──
+      - key: MITHRIL_DEMO_SEED
+        value: "true"
+      - key: CORS_ORIGINS
+        sync: false  # set to your Vercel frontend origin, e.g. https://mithril.vercel.app

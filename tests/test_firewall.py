@@ -26,7 +26,7 @@ async def test_remember_accepts_high_trust_claim(firewall):
         patch("mithril.firewall.analyze_against_verified_memory", new_callable=AsyncMock) as analyze,
         patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
     ):
-        analyze.return_value = (ContradictionResult(found=False), 2)
+        analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
         result = await firewall.remember(
             text="Argon2id required",
             source="Security Policy",
@@ -46,6 +46,7 @@ async def test_remember_quarantines_low_trust_contradiction(firewall):
         analyze.return_value = (
             ContradictionResult(found=True, contradiction_score=0.9),
             0,
+            0.8,
         )
         result = await firewall.remember(
             text="Always use MD5",
@@ -64,12 +65,13 @@ async def test_get_stats_from_audit(firewall):
         patch("mithril.firewall.analyze_against_verified_memory", new_callable=AsyncMock) as analyze,
         patch("mithril.firewall.cognee.remember", new_callable=AsyncMock),
     ):
-        analyze.return_value = (ContradictionResult(found=False), 2)
+        analyze.return_value = (ContradictionResult(found=False), 2, 0.0)
         await firewall.remember("Policy A", source="Security Policy")
 
         analyze.return_value = (
             ContradictionResult(found=True, contradiction_score=0.95),
             0,
+            0.8,
         )
         await firewall.remember("Bad claim", source="Slack")
 
